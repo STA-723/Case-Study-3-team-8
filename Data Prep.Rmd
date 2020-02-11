@@ -3,6 +3,8 @@ title: "Data Prep"
 author: "Raphaël Morsomme"
 date: "February 11, 2020"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup}
@@ -11,17 +13,22 @@ library(readr)
 ```
 
 ```{r read in data}
-var <- read_table2("Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Record_layout.txt",
+var <- read_table2("Data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Record_layout.txt",
                    col_names = FALSE, skip = 9) %>%
   rename(var_name = X1, beg = X2, end = X3, type = X4) %>%
   select(-X5) %>%
   
   mutate(len = end-beg+1)
 
-d <- read_fwf("Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
+d <- read_fwf("data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
          fwf_widths(widths = var$len, col_names = var$var_name),
          na = c(" ", "."),
-         guess_max = 1e4) %>%
+         guess_max = 1e4)
+```
+
+```{r predictors}
+X <- d %>%
+  select(GRADE, AGEGROUP:AGEGT23, WEIGHT01) %>%
   select_if(function(x){mean(is.na(x)) < 0.1})
 ```
 
