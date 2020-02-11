@@ -1,5 +1,6 @@
 library(readr)
 library(tidyverse)
+library(randomForest)
 
 var <- read_table2("Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Record_layout.txt",
                    col_names = FALSE, skip = 9) %>%
@@ -13,3 +14,14 @@ d <- read_fwf("Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
          na = c(" ", "."),
          guess_max = 1e4) %>%
   select_if(function(x){mean(is.na(x)) < 0.1})
+
+d %>% map(is.na) %>% map_dbl(mean) %>% sort
+
+
+d_gpa <- d %>%
+  rename(GPA = F5) %>%
+  filter(GPA %>% between(1, 9)) %>% # pdf p.32 
+  drop_na()
+
+rf <- randomForest(GPA ~ ., data = d_gpa,
+                   ntrees = 10)
