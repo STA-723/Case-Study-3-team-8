@@ -1,0 +1,265 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\graphicspath{ {./Figures/} }
+
+\title{Modeling Price and Popularity of AirBnB listings in New-York}
+\author{Melody Jiang, Raphael Morsomme, Ezinne Nwankwo}
+\institute{Department of Statistical Science, Duke University}
+\date{02/03/2020}
+
+\begin{document}
+
+\frame{\titlepage}
+
+
+
+%%%%%%%%%% Section1: Introduction %%%%%%%%%%%
+
+
+
+
+\begin{frame}
+    \frametitle{EDA - A city of two tales}
+
+    
+    \includegraphics[scale = 0.2]{length_stay_density.jpeg}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{EDA - Are you available?}
+    \includegraphics[scale = 0.2]{availability_density.jpeg}
+\end{frame}
+
+\begin{frame}
+    \frametitle{EDA - Room type}
+    \begin{itemize}
+        \item $p < 1e-16$
+    \end{itemize}
+    \centering
+    \includegraphics[scale = 0.13]{room_type_chi.jpeg}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{EDA - Attractions}
+    \includegraphics[scale = 0.8]{map_eda.jpeg}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Data Cleaning}
+Since the data quality is questionable, we narrow down our focus to \textit{active} listing for \textit{short term} stays that are \textit{private}:
+
+\begin{itemize}
+	\item last review is less than $12$ months old
+	\item min number of days inferior to to $29$
+	\item less than $5$ listings per owner
+\end{itemize}
+
+We also incorporate external data:
+\begin{itemize}
+	\item Location of metro stations
+	\item Location of main attractions
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Feature Engineering - Proximity to Metro and Attractions}
+EDA suggests spatial modeling:
+\begin{itemize}
+	\item Proximity to closest metro stations
+	$$dist_{Manhattan}(x, y) = |lat_{x} - lat_{y}| +  |long_{x} - long_{y}|$$
+	\item Average proximity to ($36$) attractions
+	$$proximity(X) = \dfrac{1}{n}\sum_{i=1}^{n} \dfrac{1}{dist(X, attraction_i)}
+	$$
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Feature Engineering - Textual Data}
+Textual data always invites creativity:
+\begin{itemize}
+	\item Sentiment analysis of listing name
+	$$ Sentiment(W) = \dfrac{1}{n}\sum_{i=1}^{n} dictionary(w_i)$$
+	where $dictionary_{Affin}(w) \in \left\lbrace -5, -4, \dots, 5\right\rbrace$
+	\item Origin of host $\Rightarrow$ frequency of name
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Feature Engineering - Attractions}
+    \includegraphics[scale = 0.8]{log_price_vs_prox_attr.jpeg}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Feature Engineering - Metro}
+    \includegraphics[scale = 0.8]{log_price_vs_prox_metro.jpeg}
+\end{frame}
+
+\begin{frame}
+\frametitle{Models}
+Two regression models
+\begin{itemize}
+	\item Regression Model
+	\begin{itemize}
+		\item Outcome: price, popularity
+		\begin{itemize}
+            \item $\text{popularity} = \frac{\text{reviews per month}}{\text{availability}}$
+        \end{itemize}
+		\item Predictors: listing sentiment, name frequency, proximity metro, proximity attraction, room type, etc.
+		\item $n = 25,000$, $p=14$
+	\end{itemize}
+	\item Random Forest
+	\begin{itemize}
+		\item $1,900$ trees, subsamples $19,000$
+		\item $m=\frac{p}{3}=4$ variables at each split, $n_{leaf} \ge 5$.
+	\end{itemize}
+	\item BMA
+	\begin{itemize}
+		\item Linear combination of predictors
+		\item Prior: Cauchy
+		\item N.Models: $2^{15}$
+		\item MCMC.iterations: $10^{16}$
+		\item initprobs $=$ "marg-eplogp"
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Models - continued}
+\begin{itemize}
+	\item Important Predictors
+	\begin{itemize}
+		\item RF: variable importance
+		
+		\item BMA: PIP
+	\end{itemize}
+	\item Sensitivity Analysis
+	\begin{itemize}
+		\item RF: vary $m$ and minimum $n_{leaf}$.
+		\item BMA: consider different priors (Cauchy prior, g prior for $g = 1,5,8,100,500,1000$)
+	\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+%%%%%%%
+\begin{frame}
+\frametitle{Results - Random Forest Price}
+\input{Figures/price_rf_importance.tex}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results - Random Forest Popularity}
+\input{Figures/pop_rf_importance.tex}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results - BMA Price}
+
+\input{Figures/price_bma_coef_confint.tex}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results - BMA Popularity}
+\begin{center}
+	\input{Figures/pop_bma_coef_confint.tex}
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Diagnostic Plots - BMA - Popularity}
+\begin{center}
+	\includegraphics[scale = 0.5]{diagnostics_pop_bma.jpeg}	
+\end{center}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Residuals - BMA}
+\includegraphics[scale = 0.9]{map_price_bma.jpeg}
+\end{frame} 
+
+%%%%%%%
+
+
+\begin{frame}
+    \frametitle{Discussions - Future Directions}
+
+    \begin{itemize}
+        \item Data collection
+        \begin{itemize}
+            \item One row per booking
+        \end{itemize}
+        \item Spatial modeling
+        \begin{itemize}
+            \item Incusion of boroughs does not work well. Spatial modeling that addresses relationship between houses (Valente, 2005).
+        \end{itemize}
+        \item Domain-specific knowledge
+        \begin{itemize}
+            \item Submarkets influence pricing. Finite mixture model by Belasco1, 2012.
+            \item Knowledge in marketing. E.g. consider form of pricing as an influencer of popularity (99 vs 100).
+        \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Discussions}
+
+    \centering
+    \includegraphics[scale = 0.2]{price.jpeg}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{References}
+\footnotesize{
+	\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+		
+		\bibitem[Whickam, 2013]{Whickam2009} Whickam, H. \\
+		\newblock Tidy Data\\
+		\newblock \emph{Journal}, month year
+		
+    \end{thebibliography}
+    
+    \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+		
+		\bibitem[Valente, 2005]{Valente2005} Valente, j. \\
+		\newblock Apartment Rent Prediction Using Spatial Modeling\\
+		\newblock \emph{Journal}, month year
+		
+    \end{thebibliography}
+    
+    \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+		
+		\bibitem[Belasco, 2012]{Belasco2012} Belasco, E. \\
+		\newblock Using a Finite Mixture Model of Heterogeneous Households to Delineate Housing Submarkets\\
+		\newblock \emph{Journal}, month year
+		
+	\end{thebibliography}
+}
+\end{frame}
+    
+
+
+
+
+
+
+\end{document}

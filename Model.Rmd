@@ -1,0 +1,21 @@
+---
+title: "Model"
+author: "Raphaël Morsomme"
+date: "February 11, 2020"
+output: pdf_document
+---
+
+```{r}
+library(randomForest)
+```
+
+
+```{r model fitting}
+
+```
+
+
+```{r model output}
+
+```
+
