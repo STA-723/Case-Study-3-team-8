@@ -26,9 +26,19 @@ d <- read_fwf("data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt
          guess_max = 1e4)
 ```
 
-```{r predictors}
-X <- d %>%
-  select(GRADE, AGEGROUP:AGEGT23, WEIGHT01) %>%
-  select_if(function(x){mean(is.na(x)) < 0.1})
+```{r variable}
+d <- d %>%
+  select(
+    Y = GRADE, # response
+    AGEGROUP:AGEGT23, WEIGHT01) # predictors
+```
+
+
+```{r NA}
+d <- d %>% na.omit
+```
+
+```{r}
+save(d, file = "Data/data_model.RDATA")
 ```
 

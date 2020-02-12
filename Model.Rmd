@@ -3,19 +3,51 @@ title: "Model"
 author: "Raphaël Morsomme"
 date: "February 11, 2020"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
 library(randomForest)
+library(xtable)
+library(tidyverse)
+load("Data/data_model.RDATA")
+
+my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
 ```
 
 
 ```{r model fitting}
-
+m <- randomForest(Y ~ ., data = d, importance = TRUE,
+                  
+                  # Computational costs
+                  ntree = 1e2,
+                  sampsize = 1e4,
+                  
+                  # Sensitivity analysis
+                  mtry = 4,
+                  nodesize = 5,
+                  maxnodes = NULL)
 ```
 
 
 ```{r model output}
+m %>%
+  importance() %>%
+  
+  as_tibble(rownames = "Variables") %>%
+  rename(Importance = `%IncMSE`) %>%
+  select(Variables, Importance) %>%
+  arrange(-Importance) %>%
+  
+  xtable(caption= "Variable Importance") %>%
+  print(file="Deliverables/Figures/variable_importance.tex",type = "latex", booktab = TRUE)
+```
 
+```{r}
+mtcars %>%
+  ggplot(aes(x = mpg)) +
+  geom_histogram()
+my_ggsave("test.jpeg")
 ```
 
