@@ -5,9 +5,8 @@ date: "February 11, 2020"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r}
 library(tidyverse)
-
 
 # See example of how to use my_ggsave() and generate_table in the Model.Rmd file. 
 my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
@@ -17,5 +16,14 @@ generate_table <- function(d, name = "test.tex", cap = ""){
     xtable(caption= cap) %>%
     print(file= str_c("Deliverables/Figures/", name), type = "latex", booktab = TRUE)
 }
+
+source("prettyplot.R")
+load("Data/data_model.RDATA")
+d <- d_cheap
+```
+
+
+```{r}
+hist(d$consum )
 ```
 
