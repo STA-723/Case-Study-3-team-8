@@ -144,32 +144,6 @@ ressource_need = (situational_risk + consumption_risk)*(1-awareness)
 hist(ressource_need)
 ```
 
-
-```{r}
-data <- d %>%
-  select(
-    Y = ressource_need, # response
-    age = A1, # Age group
-    gender = A2,
-    year = A3, # Current year in school
-    frat_member = A5, # Member of frat or sorority
-    living_location = A6, # Where you live (dorm, house, etc.)
-    #roommates = A7, # Who you live with (alone, roommates, partner, parents)
-    alcohol_free_housing = B8, # wether you live in an alcohol free housing
-    edu_satisfaction = F1, # Satisfaction with education
-    life_satisfaction = F2,
-    n_friends = F3, # Number of friends
-    faculty_available = F4, # Faculty available to talk
-    GPA = F5, 
-    phys_activity = F7,
-    marrital_status = G1,
-    #race = G3,
-    religion = G4)
-    # AGEGROUP:AGEGT23, WEIGHT01) # predictors
-
-data <- data %>% na.omit
-```
-
 ```{r variable}
 d_cheap <- d %>% mutate(Y = ressource_need) %>% 
   select(Y, # response
