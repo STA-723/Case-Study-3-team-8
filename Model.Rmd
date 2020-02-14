@@ -25,7 +25,7 @@ generate_table <- function(d, name = "test.tex", cap = ""){
 
 
 ```{r model fitting}
-m <- randomForest(Y ~ ., data = d, importance = TRUE,
+m <- randomForest(Y ~ . - consumption_risk - awareness - situational_risk, data = d, importance = TRUE,
                   do.trace = 10,
                   
                   # Computational costs
