@@ -26,19 +26,153 @@ d <- read_fwf("data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt
          guess_max = 1e4)
 ```
 
+## Response variables
+
+We define **awareness** and **risk** scores, with the risk being disaggregated in three categories: consumption risk, behavioural risk and situational risks. A weighted sum of these three risks, appropriately scaled by student awareness, produces the global response variable **ressource_need** which measures how much a student might benefit from being presented with additional ressources.
+
+### Awareness
+
+```{r}
+awareness = rowMeans(cbind(
+  # School policy awareness
+  rowMeans(cbind(d$B2==6, 
+                 d$B3==5, 
+                 d$B5 == 4), 
+           na.rm=T),
+  
+  # Provided information
+  rowMeans(cbind(d$B6A==1, 
+                 d$B6B==1, 
+                 d$B6C==1, 
+                 d$B6D==1, 
+                 d$B6E==1, 
+                 d$B6F==1, 
+                 d$B6G==1), 
+           na.rm=T),
+  
+  # Educational material
+  rowMeans(cbind(d$B7A==1, 
+                 d$B7B==1, 
+                 d$B7C==1, 
+                 d$B7D==1, 
+                 d$B7E==1), 
+           na.rm=T)
+), na.rm=TRUE)
+```
+
+### Consumption risk
+
+```{r}
+p_binge = recode(d$BINGE,
+                 `0` = 0.1,
+                 `1` = 0.9
+                 )
+
+p_freqbinge = recode(d$FREQBING,
+                     `1` = 0.9,
+                     `2` = 0.95
+                     )
+
+p_self_describe = recode(d$C7,
+                         `1` = 0.05,
+                         `2` = 0.9,
+                         `3` = 0.1,
+                         `4` = 0.2,
+                         `5` = 0.3,
+                         `6` = 0.5,
+                         `7` = 0.9)
+
+avg <- function(...) {
+  args = c(...)
+  args = args[!is.na(args)]
+  p = length(args)
+  1 - prod(1-args)^(1/p)
+}
+```
+
+```{r}
+consumption_risk = pmap_dbl(data.frame(p_binge, p_freqbinge, p_self_describe), avg)
+```
+
+### Behavioural risk
+
+```{r}
+# Survey questions C17 - C20 are not in the dataset....
+
+```
+
+### Situational risk
+
+```{r}
+
+p_insulted = recode(d$D1A,
+                    `1` = 0.01,
+                    `2` = 0.2,
+                    `3` = 0.5,
+                    `4` = 0.85)
+
+p_assaulted = recode(d$D1C,
+                    `1` = 0.1,
+                    `2` = 0.9,
+                    `3` = 0.99,
+                    `4` = 0.999)
+
+p_damage = recode(d$D1D,
+                    `1` = 0.01,
+                    `2` = 0.4,
+                    `3` = 0.8,
+                    `4` = 0.95)
+
+p_advances = recode(d$D1H,
+                    `1` = 0.1,
+                    `2` = 0.9,
+                    `3` = 0.99,
+                    `4` = 0.999)
+
+situational_risk = pmap_dbl(data.frame(p_insulted, 
+                                       p_assaulted, 
+                                       p_damage,
+                                       p_advances), avg)
+```
+
+### Response variable
+
+```{r}
+ressource_need = (situational_risk + consumption_risk)*(1-awareness)
+
+hist(ressource_need)
+```
+
+
 ```{r variable}
-d <- d %>%
+data <- d %>%
   select(
-    Y = GRADE, # response
-    AGEGROUP:AGEGT23, WEIGHT01) # predictors
+    Y = ressource_need, # response
+    age = A1, # Age group
+    gender = A2,
+    year = A3, # Current year in school
+    frat_member = A5, # Member of frat or sorority
+    living_location = A6, # Where you live (dorm, house, etc.)
+    roommates = A7, # Who you live with (alone, roommates, partner, parents)
+    alcohol_free_housing = B8, # wether you live in an alcohol free housing
+    edu_satisfaction = F1, # Satisfaction with education
+    life_satisfaction = F2,
+    n_friends = F3, # Number of friends
+    faculty_available = F4, # Faculty available to talk
+    GPA = F5, 
+    phys_activity = F7,
+    marrital_status = G1,
+    race = G3,
+    religion = G4)
+    # AGEGROUP:AGEGT23, WEIGHT01) # predictors
 ```
 
 
 ```{r NA}
-d <- d %>% na.omit
+data <- data %>% na.omit
 ```
 
 ```{r}
-save(d, file = "Data/data_model.RDATA")
+save(data, file = "Data/data_model.RDATA")
 ```
 

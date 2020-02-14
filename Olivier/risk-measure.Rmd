@@ -80,11 +80,14 @@ p_binge = recode(d$BINGE,
                  `1` = 0.9
                  )
 
-p_freqbinge = d$FREQBING %>%  case_when(
-                     . == 0 ~ 0.1,
-                     1 ~ 0.9,
-                     2 ~ 0.95
+p_freqbinge = recode(d$FREQBING,
+                     `1` = 0.9,
+                     `2` = 0.95
                      )
+
+p_self_describe = recode(d$C7,
+                         `1` = )
+                         
 ```
 
 
