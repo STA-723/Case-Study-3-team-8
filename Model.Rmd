@@ -12,6 +12,7 @@ library(randomForest)
 library(xtable)
 library(tidyverse)
 load("Data/data_model.RDATA")
+d <- d_cheap
 
 my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
 
@@ -25,15 +26,15 @@ generate_table <- function(d, name = "test.tex", cap = ""){
 
 ```{r model fitting}
 m <- randomForest(Y ~ ., data = d, importance = TRUE,
+                  do.trace = 10,
                   
                   # Computational costs
                   ntree = 1e2,
-                  sampsize = 1e4,
                   
                   # Sensitivity analysis
-                  mtry = 4,
-                  nodesize = 5,
-                  maxnodes = NULL)
+                  mtry = floor(ncol(d)/3),
+                  nodesize = 5, # pruning
+                  maxnodes = NULL) # pruning
 ```
 
 
@@ -79,9 +80,10 @@ n == n_train_proper + n_callibration + n_test # sanity check
 n_train == n_train_proper + n_callibration # sanity check
 
 # repeat experiment N times
-N <- 1e2
+N <- 1e1
 
 for(i in 1 : N){
+  print(i)
   
   d_random <- d %>% sample_frac() # shuffle data
   d_train_proper <- d_random %>% slice(1:n_train_proper)
@@ -120,7 +122,7 @@ save(output, file = "Data/conformal.RDATA")
 output %>%
   group_by(signif) %>%
   summarize_all(mean) %>%
-  generate_table(name = "conformal.tex", cap = "Width and signif")
+  generate_table(name = "conformal.tex", cap = "Width of Prediction Intervals")
 
 output %>%
   group_by(signif) %>%
