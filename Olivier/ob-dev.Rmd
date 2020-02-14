@@ -29,7 +29,7 @@ d <- read_fwf("../Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
 
 
 ```{r}
-
+d
 ```
 
 

@@ -1,0 +1,121 @@
+---
+title: "Risk measure"
+author: "Olivier Binette"
+date: '2020-02-12'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(tidyverse)
+
+var <- read_table2("../Data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Record_layout.txt",
+                   col_names = FALSE, skip = 9) %>%
+  rename(var_name = X1, beg = X2, end = X3, type = X4) %>%
+  select(-X5) %>%
+  mutate(len = end-beg+1)
+
+d <- read_fwf("../Data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
+         fwf_widths(widths = var$len, col_names = var$var_name),
+         na = c(" ", "."),
+         guess_max = 1e4) %>%
+  select_if(function(x){mean(is.na(x)) < 0.1})
+```
+
+- Behavioural risk
+- Situational risk
+
+- Awareness score
+- Alcohol risk
+
+Challenges:
+  - Complementary questions vs independent questions
+
+Ideas: logistic model for probability of alcohol problem
+
+Model of the -log((1-p)), p = prob(alcohol problem) or p = prob(benefit from ressources)
+
+geometric average aggregation.
+
+Group 1: Alcohol consumption (prob of alcohol problem)
+  
+  consumption:
+    C1: # 5+ drinks
+      C5 * C4 / p
+    C2: # exactly 4 drinks
+      4 * C2 / p
+  
+    p = 1-2^(C5 * C4 / a + 4*C2 / a)
+    
+Group 2: Behavioural risks
+
+  Self-description:
+    C7:
+      Abstainer           0.05
+      former problem      0.5
+      infrequent drinker  0.1
+      light drinker       0.2
+      moderate drinker    0.3
+      heavy drinker       0.5
+      problem drinker     0.9
+    
+  last drink:
+    C10
+      never had     0.05
+      not in last year  0.1
+      not in the past 30 days   0.2
+      not last week             0.25
+      within the week           0.3
+      
+  
+
+Group 3: Situational risks (prob to get in a problem situation related to alcohol)
+
+
+```{R}
+p_binge = recode(d$BINGE,
+                 `0` = 0.1,
+                 `1` = 0.9
+                 )
+
+p_freqbinge = d$FREQBING %>%  case_when(
+                     . == 0 ~ 0.1,
+                     1 ~ 0.9,
+                     2 ~ 0.95
+                     )
+```
+
+
+```{r}
+d %>%
+  mutate(new = recode(BINGE,
+                      ))
+```
+
+```{r}
+avg <- function(...) {
+  args = c(...)
+  args = args[!is.na(args)]
+  p = length(args)
+  1 - prod(1-args)^(1/p)
+}
+
+score = pmap_dbl(data.frame(p_binge, p_freqbinge), avg) # d
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
