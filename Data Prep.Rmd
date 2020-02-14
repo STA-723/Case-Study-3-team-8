@@ -26,19 +26,37 @@ d <- read_fwf("data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt
          guess_max = 1e4)
 ```
 
-```{r variable}
+```{r response}
 d <- d %>%
-  select(
-    Y = GRADE, # response
-    AGEGROUP:AGEGT23, WEIGHT01) # predictors
+  mutate(Y = F5) # response
 ```
 
 
-```{r NA}
-d <- d %>% na.omit
+
+```{r variable}
+d_cheap <- d %>%
+  select(Y, # response
+         
+         # predictors
+         A1:A4A, A6,
+         B2:B3, B16A:B16I, B22,
+       #  F5,
+         G1:G3E, G12A:G13) %>%
+  
+  # categorical variables
+  mutate_at(vars(A4, A4A, A6, B22, G1, G12B, G13),
+            as.factor) %>%
+  
+  # TODO: code NA explicitly
+  
+  select_if(function(x) mean(is.na(x)) < 0.25) %>%
+  
+  na.omit
 ```
+
+
 
 ```{r}
-save(d, file = "Data/data_model.RDATA")
+save(d_cheap, file = "Data/data_model.RDATA")
 ```
 
