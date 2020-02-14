@@ -139,9 +139,11 @@ situational_risk = pmap_dbl(data.frame(p_insulted,
 ### Response variable
 
 ```{r}
-ressource_need = (situational_risk + consumption_risk)*(1-awareness)
+d <- d %>%
+  mutate(ressource_need = (situational_risk + consumption_risk)*(1-awareness),
+         Y = ressource_need)
 
-hist(ressource_need)
+hist(d$ressource_need)
 ```
 
 ```{r variable}
