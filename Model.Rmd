@@ -89,7 +89,7 @@ predictions = predict(m)
 
 
 ```{r model output}
-m %>%
+m0 %>%
   importance() %>%
   
   as_tibble(rownames = "Variables") %>%
