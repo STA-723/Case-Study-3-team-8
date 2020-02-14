@@ -145,7 +145,11 @@ hist(ressource_need)
 ```
 
 ```{r variable}
-d_cheap <- d %>% mutate(Y = ressource_need) %>% 
+d_cheap <- d %>% 
+  mutate(Y = ressource_need,
+         awareness = awareness,
+         consumption_risk = consumption_risk,
+         situational_risk = situational_risk) %>% 
   select(Y, # response
          
          # predictors
