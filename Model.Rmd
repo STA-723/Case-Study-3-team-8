@@ -57,13 +57,14 @@ mtcars %>%
 my_ggsave("test.jpeg")
 ```
 
+
 ## Conformal Prediction
 
 ```{r conformal}
 # Setup
-output <- tibble(width = numeric(0),
-                 hit   = numeric(0),
-                 signif = numeric(0))
+output <- tibble(Width = numeric(0),
+                 Coverage   = numeric(0),
+                 Significance = numeric(0))
 
 signifs <- c(0.95, 0.9, 0.75, 0.5)
 prop_test <- 1/10
@@ -107,22 +108,24 @@ for(i in 1 : N){
     d_test <- d_test %>% 
       mutate(bound_low = y_hat - a_cutoff,
              bound_upp = y_hat + a_cutoff,
-             width = bound_upp - bound_low,
-             hit = (bound_low <= Y) & (Y <= bound_upp),
-             signif = e)
+             Width = bound_upp - bound_low,
+             Coverage = (bound_low <= Y) & (Y <= bound_upp),
+             Significance = e)
   
-    output <- rbind(output, d_test %>% select(width, hit, signif)) # save output
+    output <- rbind(output, d_test %>% select(Width, Coverage, Significance)) # save output
   } # end-loop signifs
 } # end-loop N
 
 save(output, file = "Data/conformal.RDATA")
 ```
 
+
 ```{r conformal output}
 output %>%
-  group_by(signif) %>%
+  group_by(Significance) %>%
   summarize_all(mean) %>%
-  generate_table(name = "conformal.tex", cap = "Width of Prediction Intervals")
+  rename(`Mean Width` = Width) %>%
+  generate_table(name = "conformal.tex", cap = "Coverage and Mean Width of Prediction Intervals")
 
 output %>%
   group_by(signif) %>%
@@ -133,7 +136,7 @@ output %>%
   geom_errorbar(aes(ymin = q10, ymax = q90)) +
   geom_point() +
   geom_line(linetype = 2) +
-  labs(y = "Width", x = "Significance") +
+  labs(y = "Width", x = "Significance Level") +
   theme_bw()
 my_ggsave("conformal.jpeg")
 ```
