@@ -18,7 +18,7 @@ my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 
 
 generate_table <- function(d, name = "test.tex", cap = ""){
   d %>%
-    xtable(caption= cap) %>%
+    xtable(caption = cap, digits = 3) %>%
     print(file= str_c("Deliverables/Figures/", name), type = "latex", booktab = TRUE)
 }
 ```
@@ -48,13 +48,6 @@ m %>%
   arrange(-Importance) %>%
   
   generate_table(name = "example.tex", cap = "Example")
-```
-
-```{r sample}
-mtcars %>%
-  ggplot(aes(x = mpg)) +
-  geom_histogram()
-my_ggsave("test.jpeg")
 ```
 
 
@@ -105,8 +98,8 @@ for(i in 1 : N){
   for(e in signifs){
     a_cutoff <- a_callibration[n_callibration*e]
   
-    d_test <- d_test %>% 
-      mutate(bound_low = y_hat - a_cutoff,
+    d_test <- d_test %>%
+      mutate(bound_low = max(0, y_hat - a_cutoff), # max() makes the interval admissible
              bound_upp = y_hat + a_cutoff,
              Width = bound_upp - bound_low,
              Coverage = (bound_low <= Y) & (Y <= bound_upp),
@@ -128,11 +121,11 @@ output %>%
   generate_table(name = "conformal.tex", cap = "Coverage and Mean Width of Prediction Intervals")
 
 output %>%
-  group_by(signif) %>%
-  summarize(q10 = width %>% quantile(0.1),
-            q90 = width %>% quantile(0.9),
-            q50 = width %>% quantile(0.5)) %>%
-  ggplot(aes(x = signif, y = q50)) +
+  group_by(Significance) %>%
+  summarize(q10 = Width %>% quantile(0.1),
+            q90 = Width %>% quantile(0.9),
+            q50 = Width %>% quantile(0.5)) %>%
+  ggplot(aes(x = Significance, y = q50)) +
   geom_errorbar(aes(ymin = q10, ymax = q90)) +
   geom_point() +
   geom_line(linetype = 2) +
