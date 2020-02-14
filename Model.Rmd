@@ -12,11 +12,11 @@ library(randomForest)
 library(xtable)
 library(tidyverse)
 load("Data/data_model.RDATA")
-d <- d_cheap
+data = d
 
 my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
 
-generate_table <- function(d, name = "test.tex", cap = ""){
+generate_table <- function(d, name = "test.tex", cap = "") {
   d %>%
     xtable(caption = cap, digits = 3) %>%
     print(file= str_c("Deliverables/Figures/", name), type = "latex", booktab = TRUE)
@@ -25,16 +25,66 @@ generate_table <- function(d, name = "test.tex", cap = ""){
 
 
 ```{r model fitting}
-m <- randomForest(Y ~ . - consumption_risk - awareness - situational_risk, data = d, importance = TRUE,
+m0_data = data %>%
+  transmute(ressource_need,
+         age = factor(A1),
+         gender = factor(A2),
+         year = factor(A3),
+         transfer = factor(A4),
+         greek_life = factor(A5),
+         location = factor(A6),
+         live_alone = factor(A7A),
+         roommates = factor(A7B),
+         live_partner = factor(A7C),
+         live_parents = factor(A7D),
+         GPA = recode(F5, `1`=4, `2`=3.7, `3` = 3.3, `4`=3, `5`=2.7, `6`=2.3, 
+                      `7`=2, `8`=1.7, `9`=1.3),
+         #know_faculty = F4,
+         #friends = F3,
+         #satisfied_edu = F1,
+         #satisfied_life = F2
+         marital_status = factor(G1),
+         hispanic = factor(G2),
+         race = factor(RACE),
+         religion = factor(G4),
+         alcohol_free_housing = factor(B9),
+         school_policy = factor(replace_na(B2, 3))
+          )
+
+# keep variables with < 25% NA
+# removes A4A, B16A:B16J, B22
+m0_data = m0_data %>% 
+  select_if(function(x) mean(is.na(x)) < 0.25) %>% 
+  na.omit()
+
+  #select(Y, # response
+  #       awareness,
+  #       consumption_risk,
+  #       situational_risk,
+  #       # predictors TODO: Ob rename informatively
+  #       A1:A4A, A6,
+  #       B2:B3, B16A:B16I, B22,
+  #       F5,
+  #       G1:G2, RACE, G12A:G13) %>%
+
+m0 <- randomForest(ressource_need ~ ., 
+                  data = m0_data, 
+                  importance = TRUE,
                   do.trace = 10,
                   
                   # Computational costs
                   ntree = 1e2,
                   
                   # Sensitivity analysis
-                  mtry = floor(ncol(d)/3),
-                  nodesize = 5, # pruning
+                  mtry = 5, # floor(ncol(d)/3),
+                  nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
+```
+
+- One conclusion: very difficult to identify students at risk from base information.
+
+```{r}
+predictions = predict(m)
 ```
 
 
@@ -100,7 +150,7 @@ for(i in 1 : N){
   
     d_test <- d_test %>%
       mutate(bound_low = max(0, y_hat - a_cutoff), # max() makes the interval admissible
-             bound_upp = y_hat + a_cutoff,
+             bound_upp = y_hat + a_cutoff, # TODO: change upper bound
              Width = bound_upp - bound_low,
              Coverage = (bound_low <= Y) & (Y <= bound_upp),
              Significance = e)
@@ -114,6 +164,8 @@ save(output, file = "Data/conformal.RDATA")
 
 
 ```{r conformal output}
+load("Data/conformal.RDATA")
+
 output %>%
   group_by(Significance) %>%
   summarize_all(mean) %>%
@@ -133,4 +185,11 @@ output %>%
   theme_bw()
 my_ggsave("conformal.jpeg")
 ```
+
+
+# TODO: Main point of our case study is comparing the two models. 
+
+
+
+
 

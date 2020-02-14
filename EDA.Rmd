@@ -24,6 +24,7 @@ d <- d_cheap
 
 
 ```{r}
+# TODO: play around with stuff
 ggplot(d, aes(x = Y, color=factor(d$A6))) +
   geom_density()
 ```

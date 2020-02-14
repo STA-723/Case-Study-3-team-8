@@ -36,27 +36,26 @@ We define **awareness** and **risk** scores, with the risk being disaggregated i
 ```{r}
 awareness = rowMeans(cbind(
   # School policy awareness
-  rowMeans(cbind(d$B2==6, 
-                 d$B3==5, 
+  rowMeans(cbind(d$B3==5, 
                  d$B5 == 4), 
            na.rm=T),
   
   # Provided information
-  rowMeans(cbind(d$B6A==1, 
-                 d$B6B==1, 
-                 d$B6C==1, 
-                 d$B6D==1, 
-                 d$B6E==1, 
-                 d$B6F==1, 
-                 d$B6G==1), 
+  rowMeans(cbind(d$B6A==0, 
+                 d$B6B==0, 
+                 d$B6C==0, 
+                 d$B6D==0, 
+                 d$B6E==0, 
+                 d$B6F==0, 
+                 d$B6G==0), 
            na.rm=T),
   
   # Educational material
-  rowMeans(cbind(d$B7A==1, 
-                 d$B7B==1, 
-                 d$B7C==1, 
-                 d$B7D==1, 
-                 d$B7E==1), 
+  rowMeans(cbind(d$B7A==0, 
+                 d$B7B==0, 
+                 d$B7C==0, 
+                 d$B7D==0, 
+                 d$B7E==0), 
            na.rm=T)
 ), na.rm=TRUE)
 ```
@@ -100,6 +99,114 @@ consumption_risk = pmap_dbl(data.frame(p_binge, p_freqbinge, p_self_describe), a
 ```{r}
 # Survey questions C17 - C20 are not in the dataset....
 
+behavioural_probs  = cbind(
+  
+  p_drunkdrive = recode(d$DRDRIVE,
+                        `0` = 0.05,
+                        `1` = 0.8),
+  
+  p_bingedrive = recode(d$BNGDRIVE, 
+                        `0` = 0.05,
+                        `1` = 0.99),
+  
+  p_hangover = recode(d$C17A,
+                      `0` = 0.05,
+                      `1` = 0.1,
+                      `2` = 0.2,
+                      `3` = 0.3,
+                      `4` = 0.5,
+                      `5` = 0.9),
+  
+  p_missclass = recode(d$C17B,
+                       `0` = 0.05,
+                       `1` = 0.1,
+                       `2` = 0.2,
+                       `3` = 0.4,
+                       `4` = 0.8,
+                       `5` = 0.99),
+  
+  p_behind = recode(d$C17C,
+                       `0` = 0.05,
+                       `1` = 0.1,
+                       `2` = 0.2,
+                       `3` = 0.4,
+                       `4` = 0.8,
+                      `5` = 0.97),
+  
+  p_regret = recode(d$C17D,
+                       `0` = 0.05,
+                       `1` = 0.1,
+                       `2` = 0.2,
+                       `3` = 0.4,
+                       `4` = 0.8,
+                      `5` = 0.99),
+  
+  p_forget = recode(d$C17E,
+                       `0` = 0.05,
+                       `1` = 0.2,
+                       `2` = 0.3,
+                       `3` = 0.7,
+                       `4` = 0.95,
+                      `5` = 0.9),
+  
+  p_argue = recode(d$C17F,
+                       `0` = 0.05,
+                       `1` = 0.1,
+                       `2` = 0.2,
+                       `3` = 0.4,
+                       `4` = 0.8,
+                      `5` = 0.9),
+  
+  p_unplanned = recode(d$C17G,
+                       `0` = 0.05,
+                       `1` = 0.2,
+                       `2` = 0.3,
+                       `3` = 0.7,
+                       `4` = 0.95,
+                      `5` = 0.99),
+  
+  p_unprotected = recode(d$C17H,
+                       `0` = 0.05,
+                       `1` = 0.2,
+                       `2` = 0.3,
+                       `3` = 0.7,
+                       `4` = 0.95,
+                      `5` = 0.99),
+  
+  p_damage_prop = recode(d$C17I,
+                       `0` = 0.05,
+                       `1` = 0.5,
+                       `2` = 0.9,
+                       `3` = 0.99,
+                       `4` = 0.999,
+                      `5` = 0.9999),
+  
+  p_police = recode(d$C17I,
+                       `0` = 0.05,
+                       `1` = 0.5,
+                       `2` = 0.9,
+                       `3` = 0.99,
+                       `4` = 0.999,
+                      `5` = 0.9999),
+  
+  p_hurt = recode(d$C17J,
+                       `0` = 0.05,
+                       `1` = 0.3,
+                       `2` = 0.7,
+                       `3` = 0.9,
+                       `4` = 0.99,
+                      `5` = 0.999),
+  
+  p_medical = recode(d$C17K,
+                       `0` = 0.05,
+                       `1` = 0.9,
+                       `2` = 0.99,
+                       `3` = 0.999,
+                       `4` = 0.9999,
+                      `5` = 0.99999))
+
+behavioural_risk = pmap_dbl(data.frame(behavioural_probs), avg)
+
 ```
 
 ### Situational risk
@@ -138,30 +245,25 @@ situational_risk = pmap_dbl(data.frame(p_insulted,
 
 ### Response variable
 
-```{r}
-d <- d %>%
-  mutate(ressource_need = (situational_risk + consumption_risk)*(1-awareness),
-         Y = ressource_need)
-
-hist(d$ressource_need)
-```
-
 ```{r variable}
-d_cheap <- d %>% 
-  mutate(Y = ressource_need,
+d <- d %>% 
+  mutate(ressource_need = (situational_risk + consumption_risk + behavioural_risk)*(2-awareness),
          awareness = awareness,
          consumption_risk = consumption_risk,
-         situational_risk = situational_risk) %>% 
-  select(Y, # response
-         awareness,
-         consumption_risk,
-         situational_risk,
-         # predictors
-         A1:A4A, A6,
-         B2:B3, B16A:B16I, B22,
-         F5,
-         G1:G2, RACE, G12A:G13) %>%
+         situational_risk = situational_risk,
+         behavioural_risk = behavioural_risk) %>% 
+  #select(Y, # response
+  #       awareness,
+  #       consumption_risk,
+  #       situational_risk,
+  #       # predictors TODO: Ob rename informatively
+  #       A1:A4A, A6,
+  #       B2:B3, B16A:B16I, B22,
+  #       F5,
+  #       G1:G2, RACE, G12A:G13) %>%
   
+  # TODO: majority vote for the school policies? Should we include B2 and B3?
+  # Should we include awareness as part of the response?
   
   # code NA explicitly
   mutate(B2  = if_else(B2  == 6 , NA_real_, B2 ),
@@ -172,19 +274,12 @@ d_cheap <- d %>%
   
   # categorical variables
   mutate_at(vars(A4, A4A, A6, B22, G1, G12B, G13),
-            as.factor) %>%
-  
-  # keep variables with < 25% NA
-  # removes A4A, B16A:B16J, B22
-  select_if(function(x) mean(is.na(x)) < 0.25) %>%
-  
-  
-  # Complete case analysis
-  na.omit
+            as.factor)
 ```
 
 ```{r}
+# TODO: ob save "d" on the side, d_cheap to throw in the model.
 #save(data, file = "Data/data_model.RDATA")
-save(d_cheap, file = "Data/data_model.RDATA")
+save(d, file = "Data/data_model.RDATA")
 ```
 
