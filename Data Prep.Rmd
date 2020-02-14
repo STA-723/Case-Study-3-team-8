@@ -20,6 +20,7 @@ var <- read_table2("Data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Rec
   
   mutate(len = end-beg+1)
 
+
 d <- read_fwf("data/Harvard_CAS_2001/Harvard_CAS_2001/DS0001/04291-0001-Data.txt",
          fwf_widths(widths = var$len, col_names = var$var_name),
          na = c(" ", "."),
@@ -165,14 +166,43 @@ data <- d %>%
     race = G3,
     religion = G4)
     # AGEGROUP:AGEGT23, WEIGHT01) # predictors
-```
 
-
-```{r NA}
 data <- data %>% na.omit
 ```
 
+```{r variable}
+d_cheap <- d %>% mutate(Y = ressource_need) %>% 
+  select(Y, # response
+         
+         # predictors
+         A1:A4A, A6,
+         B2:B3, B16A:B16I, B22,
+         F5,
+         G1:G2, RACE, G12A:G13) %>%
+  
+  
+  # code NA explicitly
+  mutate(B2  = if_else(B2  == 6 , NA_real_, B2 ),
+         B3  = if_else(B3  == 5 , NA_real_, B3 ),
+         B22 = if_else(B22 == 5 , NA_real_, B22),
+         F5  = if_else(F5  == 10, NA_real_, F5 )) %>%
+  
+  
+  # categorical variables
+  mutate_at(vars(A4, A4A, A6, B22, G1, G12B, G13),
+            as.factor) %>%
+  
+  # keep variables with < 25% NA
+  # removes A4A, B16A:B16J, B22
+  select_if(function(x) mean(is.na(x)) < 0.25) %>%
+  
+  
+  # Complete case analysis
+  na.omit
+```
+
 ```{r}
-save(data, file = "Data/data_model.RDATA")
+#save(data, file = "Data/data_model.RDATA")
+save(d_cheap, file = "Data/data_model.RDATA")
 ```
 

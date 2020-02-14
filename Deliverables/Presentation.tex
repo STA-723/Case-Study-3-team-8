@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{booktabs}
 \graphicspath{ {./Figures/} }
 
 \title{Modeling Price and Popularity of AirBnB listings in New-York}
@@ -22,12 +23,12 @@
 
 Prediction intervals that are
 \begin{itemize}
-	\item valid at a given significance level for \textit{finite} sample.
+	\item valid at a given significance level for \textit{finite} sample (Vovk, 2005)
 	\item distribution-free
 	\item universal
-	\item individualized
+	\item individualized (Papadopoulos, 2009)
 	\item only assume exchangeability
-	\item much more efficient than bootstrap (only fit model once).
+	\item cheap (Papadopoulos, 2002)
 \end{itemize}
 \end{frame}
 
@@ -36,23 +37,34 @@ Prediction intervals that are
 
 Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled test observation $x_{n+1}$,
 \begin{enumerate}
-	\item partition training set into a \textit{proper training} set $\{z_i\}_{i=1}^k$ and a \textit{calibration} set $\{z_i \}_{i=k+1}^n$
+	\item partition training set into a \textit{proper training} set $\{z_j\}_{j=1}^l$ and a \textit{calibration} set $\{z_k \}_{k=l+1}^n$
 	\item fit predictive model on proper training set
-	\item compute prediction on calibration set and compute anomaly scores
-	$$a(z_j) = |\hat{y}_j - y_j|, j = k+1, \dots, n$$
+	\item compute predictions $\hat{y}_k$ on calibration set and anomaly scores
+	$$a(z_k) = |\hat{y}_k - y_k|, \quad k = l+1, \dots, n$$
+	\item identify $a_\epsilon$, the $\epsilon^{\text{th}}$ percentile of the $\{a\}_{k=l+1}^n$
 	\item compute prediction on test observation and set the prediction interval to be
 	$$\{y: |\hat{y}_{n+1} - y| < a_\epsilon\}$$
-	where $a_\epsilon$ is the $\epsilon^{\text{th}}$ percentile of the $\{a\}_{i=k+1}^n$.
 	\end{enumerate}
 \end{frame}
 
 
 \begin{frame} \frametitle{Set up}
 \begin{itemize}
-	\item Use a $10\%$ test set to evaluate the tightness of the prediction intervals and repeat $100$ times.
+	\item Test set is $10\%$ of data set
 	\item Calibration set is $30\%$ of training set.
+	\item repeat $100$ times to obtain the expected width of prediction intervals	
 \end{itemize}
 \end{frame}
+
+\begin{frame} \frametitle{Results - Coverage}  
+\input{Figures/conformal.tex}
+\end{frame}
+
+\begin{frame} \frametitle{Results - Width}    
+\includegraphics[scale = 0.8]{conformal.jpeg}
+\end{frame}
+
+
 
 
 
@@ -63,15 +75,15 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \footnotesize{
 	\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
 		
-		\bibitem[Whickam, 2013]{Whickam2009} Whickam, H. \\
+		\bibitem[Vovk, 2005]{Whickam2009} Vovk, A. \\
 		\newblock Tidy Data\\
 		\newblock \emph{Journal}, month year
 		
-		\bibitem[Valente, 2005]{Valente2005} Valente, j. \\
+		\bibitem[Papadopoulos, 2002]{Valente2005} Valente, j. \\
 		\newblock Apartment Rent Prediction Using Spatial Modeling\\
 		\newblock \emph{Journal}, month year
 		
-		\bibitem[Belasco, 2012]{Belasco2012} Belasco, E. \\
+		\bibitem[Papadopoulos, 2009]{Belasco2012} Belasco, E. \\
 		\newblock Using a Finite Mixture Model of Heterogeneous Households to Delineate Housing Submarkets\\
 		\newblock \emph{Journal}, month year
 		

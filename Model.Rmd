@@ -12,6 +12,7 @@ library(randomForest)
 library(xtable)
 library(tidyverse)
 load("Data/data_model.RDATA")
+d <- d_cheap
 
 my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
 
@@ -25,15 +26,15 @@ generate_table <- function(d, name = "test.tex", cap = ""){
 
 ```{r model fitting}
 m <- randomForest(Y ~ ., data = d, importance = TRUE,
+                  do.trace = 10,
                   
                   # Computational costs
                   ntree = 1e2,
-                  sampsize = 1e4,
                   
                   # Sensitivity analysis
-                  mtry = 4,
-                  nodesize = 5,
-                  maxnodes = NULL)
+                  mtry = floor(ncol(d)/3),
+                  nodesize = 5, # pruning
+                  maxnodes = NULL) # pruning
 ```
 
 
@@ -56,13 +57,14 @@ mtcars %>%
 my_ggsave("test.jpeg")
 ```
 
+
 ## Conformal Prediction
 
 ```{r conformal}
 # Setup
-output <- tibble(width = numeric(0),
-                 hit   = numeric(0),
-                 signif = numeric(0))
+output <- tibble(Width = numeric(0),
+                 Coverage   = numeric(0),
+                 Significance = numeric(0))
 
 signifs <- c(0.95, 0.9, 0.75, 0.5)
 prop_test <- 1/10
@@ -79,9 +81,10 @@ n == n_train_proper + n_callibration + n_test # sanity check
 n_train == n_train_proper + n_callibration # sanity check
 
 # repeat experiment N times
-N <- 1e2
+N <- 1e1
 
 for(i in 1 : N){
+  print(i)
   
   d_random <- d %>% sample_frac() # shuffle data
   d_train_proper <- d_random %>% slice(1:n_train_proper)
@@ -105,22 +108,24 @@ for(i in 1 : N){
     d_test <- d_test %>% 
       mutate(bound_low = y_hat - a_cutoff,
              bound_upp = y_hat + a_cutoff,
-             width = bound_upp - bound_low,
-             hit = (bound_low <= Y) & (Y <= bound_upp),
-             signif = e)
+             Width = bound_upp - bound_low,
+             Coverage = (bound_low <= Y) & (Y <= bound_upp),
+             Significance = e)
   
-    output <- rbind(output, d_test %>% select(width, hit, signif)) # save output
+    output <- rbind(output, d_test %>% select(Width, Coverage, Significance)) # save output
   } # end-loop signifs
 } # end-loop N
 
 save(output, file = "Data/conformal.RDATA")
 ```
 
+
 ```{r conformal output}
 output %>%
-  group_by(signif) %>%
+  group_by(Significance) %>%
   summarize_all(mean) %>%
-  generate_table(name = "conformal.tex", cap = "Width and signif")
+  rename(`Mean Width` = Width) %>%
+  generate_table(name = "conformal.tex", cap = "Coverage and Mean Width of Prediction Intervals")
 
 output %>%
   group_by(signif) %>%
@@ -131,7 +136,7 @@ output %>%
   geom_errorbar(aes(ymin = q10, ymax = q90)) +
   geom_point() +
   geom_line(linetype = 2) +
-  labs(y = "Width", x = "Significance") +
+  labs(y = "Width", x = "Significance Level") +
   theme_bw()
 my_ggsave("conformal.jpeg")
 ```
