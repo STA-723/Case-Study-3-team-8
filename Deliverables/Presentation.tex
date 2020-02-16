@@ -5,19 +5,62 @@
 \usepackage{booktabs}
 \graphicspath{ {./Figures/} }
 
-\title{Modeling Price and Popularity of AirBnB listings in New-York}
-\author{Olivier Binette, Raphael Morsomme}
-\institute{Department of Statistical Science, Duke University}
-\date{02/20/2020}
+\title{Predictive modelling of alcohol-associated risks in College students}
+\author{Olivier Binette and Raphael Morsomme}
+\date{February 18, 2020}
 
 \begin{document}
 
 \frame{\titlepage}
 
+\begin{frame} \frametitle{Goals}
+
+\textbf{Develop a predictive model of alcohol related risks} in college students using information readily available to schools, in order to help:
+
+\begin{enumerate}
+  \item identify students at risk and allocate support ressources as effectively as possible;
+  \item determine if additional information could help identify students at risk.
+\end{enumerate}
+
+\textbf{Assumption:} alcohol-related risks are an important issue that a school wants to address on its own through supporting students in need.
+  
+\end{frame}
+
+
+\begin{frame} \frametitle{Challenges}
+
+What we deal with:
+
+\begin{enumerate}
+  \item \textbf{Meaningfulness.} We predict a ``student need'' score which is a function of student awareness and alcohol-related risks.
+  \item \textbf{Reliability.} We provide interval predictions with exact frequentist coverage. This communicates uncertainty in the prediction and could help mitigate issues related to over-confidence in the model.
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame} \frametitle{Challenges}
+
+Things we don't deal with (but that we should):
+
+\begin{enumerate}
+  \item \textbf{Interpretability.} It is difficult to summarize the model and explain the predictions.
+  \item \textbf{Fairness.} Non-discrimination (title IX). Issues using race, gender, age as predictors. Suitability of the ``student need'' response across these groups and quality of the data among them.
+  \item \textbf{Side effects.} We globally care about student well-being and success, not just about alcohol-related risks. Only focusing on alcohol could have adverse effects on this main goal.
+  \item \textbf{Data representativeness.} The data may not represent a given school's student population and post-stratification would be necessary.
+\end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}
+
+
+
+\end{frame}
+
 
 \begin{frame} \frametitle{Is it worth it?}
 
-\textbf{DRAFT}
 
 \begin{itemize}
 	\item Predictive model to identify students at risk of alcohol-related issues
