@@ -7,7 +7,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r}
+```{r setup}
 library(randomForest)
 library(xtable)
 library(tidyverse)
@@ -23,9 +23,10 @@ generate_table <- function(d, name = "test.tex", cap = "") {
 }
 ```
 
+## Variable selection:
 
-```{r model fitting}
-m0_data = data %>%
+```{r data0}
+d0 = data %>%
   transmute(ressource_need,
          age = factor(A1),
          gender = factor(A2),
@@ -50,45 +51,76 @@ m0_data = data %>%
          alcohol_free_housing = factor(B9),
          school_policy = factor(replace_na(B2, 3))
           )
+```
 
-# keep variables with < 25% NA
-# removes A4A, B16A:B16J, B22
-m0_data = m0_data %>% 
+```{r data1}
+d1 = data %>%
+  transmute(
+         # restricted set of predictors (copied from previous chunk)
+         ressource_need,
+         age = factor(A1),
+         gender = factor(A2),
+         year = factor(A3),
+         transfer = factor(A4),
+         greek_life = factor(A5),
+         location = factor(A6),
+         live_alone = factor(A7A),
+         roommates = factor(A7B),
+         live_partner = factor(A7C),
+         live_parents = factor(A7D),
+         GPA = recode(F5, `1`=4, `2`=3.7, `3` = 3.3, `4`=3, `5`=2.7, `6`=2.3, 
+                      `7`=2, `8`=1.7, `9`=1.3),
+         #know_faculty = F4,
+         #friends = F3,
+         #satisfied_edu = F1,
+         #satisfied_life = F2
+         marital_status = factor(G1),
+         hispanic = factor(G2),
+         race = factor(RACE),
+         religion = factor(G4),
+         alcohol_free_housing = factor(B9),
+         school_policy = factor(replace_na(B2, 3))
+         
+         # additional predictors:
+          )
+```
+
+- One conclusion: very difficult to identify students at risk from base information.
+
+
+
+
+```{r combine data}
+d0 <- d0 %>% 
   select_if(function(x) mean(is.na(x)) < 0.25) %>% 
-  na.omit()
+  na.omit() %>% 
+  rename(Y = ressource_need)
 
-  #select(Y, # response
-  #       awareness,
-  #       consumption_risk,
-  #       situational_risk,
-  #       # predictors TODO: Ob rename informatively
-  #       A1:A4A, A6,
-  #       B2:B3, B16A:B16I, B22,
-  #       F5,
-  #       G1:G2, RACE, G12A:G13) %>%
+d1 <- d1 %>% 
+  select_if(function(x) mean(is.na(x)) < 0.25) %>% 
+  na.omit() %>%
+  rename(Y = ressource_need)
 
-m0 <- randomForest(ressource_need ~ ., 
-                  data = m0_data, 
+d_list <- list(d0, d1) # combine data for the for-loop
+```
+
+
+## Check one RF
+
+```{r model output}
+m0 <- randomForest(Y ~ ., 
+                  data = d0, 
                   importance = TRUE,
                   do.trace = 10,
                   
                   # Computational costs
-                  ntree = 1e2,
+                  ntree = 40,
                   
                   # Sensitivity analysis
                   mtry = 5, # floor(ncol(d)/3),
                   nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
-```
 
-- One conclusion: very difficult to identify students at risk from base information.
-
-```{r}
-predictions = predict(m)
-```
-
-
-```{r model output}
 m0 %>%
   importance() %>%
   
@@ -101,63 +133,81 @@ m0 %>%
 ```
 
 
+
 ## Conformal Prediction
+
+Change `n_tree` and `n_repeat` to larger values before the presentation. Use 1000 and 25 if time permits. More would be better (1500 and 100).
+
+```{r computational costs}
+n_tree <- 50 # ideally: 1500
+n_repeat <- 3 # ideally 100
+```
+
 
 ```{r conformal}
 # Setup
 output <- tibble(Width = numeric(0),
                  Coverage   = numeric(0),
-                 Significance = numeric(0))
+                 Significance = numeric(0),
+                 `Set of Predictors` = character(0))
 
 signifs <- c(0.95, 0.9, 0.75, 0.5)
 prop_test <- 1/10
 prop_callibration <- 1/3
 
-# Size of test, callibration and proper training set
-n <- nrow(d)
-n_test  <- n %/% (1/prop_test)
-n_train <- n - n_test
-n_callibration_max <- n_train %/% (1/prop_callibration)
-n_callibration     <- 20*(n_callibration_max %/% 20)
-n_train_proper     <- n_train - n_callibration 
-n == n_train_proper + n_callibration + n_test # sanity check
-n_train == n_train_proper + n_callibration # sanity check
-
-# repeat experiment N times
-N <- 1e1
-
-for(i in 1 : N){
-  print(i)
+for(data in 1:2){
   
-  d_random <- d %>% sample_frac() # shuffle data
-  d_train_proper <- d_random %>% slice(1:n_train_proper)
-  d_callibration <- d_random %>% slice(((n_train_proper+1):n_train))
-  d_test         <- d_random %>% slice(((n_train+1):n))
-  nrow(d) == nrow(d_train_proper) + nrow(d_callibration) + nrow(d_test) # Sanity check
-  
-  # Fit model to proper training set
-  m <- randomForest(Y ~ ., data = d_train_proper)
+  d <- d_list[[data]]
+  d_name <- c("Restricted", "Extensive")[data]
 
-  # Compute anomaly score on callibration set
-  pred_callibration <- predict(m, d_callibration)
-  a_callibration <- abs(pred_callibration - d_callibration$Y) %>% sort
-
-  # Prediction intervals on test set
-  d_test <- d_test %>% mutate(y_hat = predict(m, d_test))
-
-  for(e in signifs){
-    a_cutoff <- a_callibration[n_callibration*e]
+  # Size of test, callibration and proper training set
+  n <- nrow(d)
+  n_test  <- n %/% (1/prop_test)
+  n_train <- n - n_test
+  n_callibration_max <- n_train %/% (1/prop_callibration)
+  n_callibration     <- 20*(n_callibration_max %/% 20)
+  n_train_proper     <- n_train - n_callibration 
+  n == n_train_proper + n_callibration + n_test # sanity check
+  n_train == n_train_proper + n_callibration # sanity check
   
-    d_test <- d_test %>%
-      mutate(bound_low = max(0, y_hat - a_cutoff), # max() makes the interval admissible
-             bound_upp = y_hat + a_cutoff, # TODO: change upper bound
-             Width = bound_upp - bound_low,
-             Coverage = (bound_low <= Y) & (Y <= bound_upp),
-             Significance = e)
   
-    output <- rbind(output, d_test %>% select(Width, Coverage, Significance)) # save output
-  } # end-loop signifs
-} # end-loop N
+  for(i in 1 : n_repeat){ # repeat experiment N times
+    
+    print(i)
+    
+    d_random <- d %>% sample_frac() # shuffle data
+    d_train_proper <- d_random %>% slice(1:n_train_proper)
+    d_callibration <- d_random %>% slice(((n_train_proper+1):n_train))
+    d_test         <- d_random %>% slice(((n_train+1):n))
+    nrow(d) == nrow(d_train_proper) + nrow(d_callibration) + nrow(d_test) # Sanity check
+    
+    # Fit model to proper training set
+    m <- randomForest(Y ~ ., data = d_train_proper, ntree = n_tree)
+  
+    # Compute anomaly score on callibration set
+    pred_callibration <- predict(m, d_callibration)
+    a_callibration <- abs(pred_callibration - d_callibration$Y) %>% sort
+  
+    # Prediction intervals on test set
+    d_test <- d_test %>% mutate(y_hat = predict(m, d_test))
+  
+    for(e in signifs){
+      a_cutoff <- a_callibration[n_callibration*e]
+    
+      d_test <- d_test %>%
+        mutate(bound_low = y_hat - a_cutoff,
+               bound_upp = y_hat + a_cutoff,
+               bound_low = pmax(0, bound_low), # make intervale admissible
+               Width     = bound_upp - bound_low,
+               Coverage  = (bound_low <= Y) & (Y <= bound_upp),
+               Significance        = e,
+               `Set of Predictors` = d_name)
+    
+      output <- rbind(output,
+                      d_test %>% select(Width, Coverage, Significance, `Set of Predictors`)) # save output
+    } # end-loop signifs
+  } # end-loop N
+} # end-loop data
 
 save(output, file = "Data/conformal.RDATA")
 ```
@@ -167,20 +217,26 @@ save(output, file = "Data/conformal.RDATA")
 load("Data/conformal.RDATA")
 
 output %>%
-  group_by(Significance) %>%
+  group_by(Significance,
+           `Set of Predictors`) %>%
   summarize_all(mean) %>%
   rename(`Mean Width` = Width) %>%
+  
   generate_table(name = "conformal.tex", cap = "Coverage and Mean Width of Prediction Intervals")
 
+gap <- 0.04
 output %>%
-  group_by(Significance) %>%
+  group_by(Significance,
+           `Set of Predictors`) %>%
   summarize(q10 = Width %>% quantile(0.1),
             q90 = Width %>% quantile(0.9),
             q50 = Width %>% quantile(0.5)) %>%
-  ggplot(aes(x = Significance, y = q50)) +
-  geom_errorbar(aes(ymin = q10, ymax = q90)) +
-  geom_point() +
-  geom_line(linetype = 2) +
+  ggplot(aes(x = Significance, y = q50, col = `Set of Predictors`)) +
+  geom_errorbar(aes(ymin = q10, ymax = q90),
+                position = position_dodge(width = gap)) +
+  geom_point(position = position_dodge(width = gap)) +
+  geom_line(linetype = 2,
+            position = position_dodge(width = gap)) +
   labs(y = "Width", x = "Significance Level") +
   theme_bw()
 my_ggsave("conformal.jpeg")
@@ -188,8 +244,5 @@ my_ggsave("conformal.jpeg")
 
 
 # TODO: Main point of our case study is comparing the two models. 
-
-
-
 
 

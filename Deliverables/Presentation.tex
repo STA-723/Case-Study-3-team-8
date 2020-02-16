@@ -15,9 +15,35 @@
 \frame{\titlepage}
 
 
-\begin{frame} \frametitle{test}    
-    \includegraphics[scale = 0.8]{test.jpeg}
+\begin{frame} \frametitle{Is it worth it?}
+
+\textbf{DRAFT}
+
+\begin{itemize}
+	\item Predictive model to identify students at risk of alcohol-related issues
+	\item Consider two nested sets of predictors
+	\begin{itemize}
+		\item variables that the school already has e.g. age and sex
+		\item variables that the school could easily collect e.g. religion and marital status of parents additional predictors
+	\end{itemize}
+	\item Compare the predictive power of the two models using the \textit{conformal prediction} framework.
+\end{itemize}
 \end{frame}
+
+
+\begin{frame} \frametitle{Response Variable}
+
+Three measures of risk:
+\begin{itemize}
+	\item behavioral risk
+	\item ...
+\end{itemize}
+
+Construct the response variable with the following formula
+$$\text{Risk}_i = X_i + y_i * z_i ^ \pi$$
+
+\end{frame}
+
 
 \begin{frame} \frametitle{Conformal Predictors}
 
@@ -52,7 +78,8 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \begin{itemize}
 	\item Test set is $10\%$ of data set
 	\item Calibration set is $30\%$ of training set.
-	\item repeat $100$ times to obtain the expected width of prediction intervals	
+	\item Repeat $100$ times to obtain the expected width of prediction intervals	
+	\item Predictive model: Random Forest with $1,500$ trees, $m = p/3$ and default pruning.
 \end{itemize}
 \end{frame}
 
@@ -60,11 +87,21 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \input{Figures/conformal.tex}
 \end{frame}
 
-\begin{frame} \frametitle{Results - Width}    
-\includegraphics[scale = 0.8]{conformal.jpeg}
+\begin{frame} \frametitle{Results - Width}   
+\begin{figure}
+	\centering
+	\includegraphics[scale = 0.5]{conformal.jpeg}
+	\caption{Median and inter-decile interval width across significance levels.}
+	\label{fig:conformal}
+\end{figure}
 \end{frame}
 
-
+\begin{frame}
+Future directions
+\begin{itemize}
+	\item tune the pruning of the trees in the RF
+\end{itemize}
+\end{frame}
 
 
 
