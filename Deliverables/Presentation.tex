@@ -84,41 +84,52 @@ Better approach would use expert advice... this is a coarse approximation to it.
 
 \end{frame}
 
-\begin{frame}
+\begin{frame} \frametitle{Random forest predictive models}
+  
+  \textbf{Base model predictors:}
+  \begin{itemize}
+    \item Demographic information (age, gender, year in program, race, marital status, etc)
+    \item Living accomodation (living in dorm, alone, with roommates, spouse or parents; type of dorm, part of a fraternity or sorority).
+    \item GPA.
+  \end{itemize}
+  
+  \textbf{Augmented data model predictors:}
+  \begin{itemize}
+    \item Same as above, plus:
+    \item Ratings of importance of different aspects of student life (athletics, arts, partying, etc)
+    \item Time doing various activities (tv, study, work etc)
+    \item Satisfaction with education and life; friendships and mentorship.
+  \end{itemize}
   
 \end{frame}
 
+\begin{frame} \frametitle{Predictive models fit}
 
-\begin{frame} \frametitle{Is it worth it?}
-
-
+\textbf{Base model:} About $20\%$ ``variance explained''.
 \begin{itemize}
-	\item Predictive model to identify students at risk of alcohol-related issues
-	\item Consider two nested sets of predictors
-	\begin{itemize}
-		\item variables that the school already has e.g. age and sex
-		\item variables that the school could easily collect e.g. religion and marital status of parents additional predictors
-	\end{itemize}
-	  \item Compare the predictive power of the two models using the \textit{conformal prediction} framework.
-\end{itemize}
-\end{frame}
-
-
-\begin{frame} \frametitle{Response Variable}
-
-Three measures of risk:
-\begin{itemize}
-	\item behavioral risk
-	\item ...
+  \item Most important predictors: race, part of fraternity or sorority, having roommates or not, etc.
 \end{itemize}
 
-Construct the response variable with the following formula
-$$\text{Risk}_i = X_i + y_i * z_i ^ \pi$$
+\textbf{Augmented model:} About $40\%$ ``variance explained''.
+\begin{itemize}
+  \item Most important predictors: how much the student likes partying, and the above.
+\end{itemize}
 
 \end{frame}
 
 
-\begin{frame} \frametitle{Conformal Predictors}
+\begin{frame} \frametitle{Conformal Prediction}
+
+  Conformal prediction (to be defined) allows us to:
+  
+  \begin{enumerate}
+    \item Quantify uncertainty associated with predicted values and limit issues associated with overconfidence.
+    \item Compare the fit of the two models from the point of view of the predictive error distribution.
+  \end{enumerate}
+
+\end{frame}
+
+\begin{frame} \frametitle{Conformal Prediction}
 
 Prediction intervals that are
 \begin{itemize}
@@ -169,11 +180,15 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \end{figure}
 \end{frame}
 
-\begin{frame}
-Future directions
+\begin{frame} \frametitle{Conclusions}
+
 \begin{itemize}
-	\item tune the pruning of the trees in the RF
+	\item Baseline student information provides some but limited information about the student ``ressource need'' variable.
+	\item The random forest model does not perform much better than a linear regression in terms of $R^2$ value ($18\%$ in this case; $37\%$ for the augmented model). Interpretable models would be more appropriate.
+	\item Asking students about how they spend their time, what they value the most at college, and how satisfied they are with their education considerably improves predictive accuracy.
 \end{itemize}
+
+
 \end{frame}
 
 

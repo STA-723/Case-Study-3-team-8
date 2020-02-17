@@ -137,12 +137,15 @@ m0 <- randomForest(Y ~ .,
                   do.trace = 10,
                   
                   # Computational costs
-                  ntree = 40,
+                  ntree = 100,
                   
                   # Sensitivity analysis
                   mtry = 5, # floor(ncol(d)/3),
                   nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
+
+m0.lm <- lm(Y ~ ., data = d0) # pruning
+
 
 m0 %>%
   importance() %>%
@@ -169,6 +172,8 @@ m1 <- randomForest(Y ~ .,
                   nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
 
+
+m1.lm <- lm(Y ~ ., data = d1) # pruning
 
 m1 %>%
   importance() %>%

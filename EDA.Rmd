@@ -35,3 +35,18 @@ cor.im(dat[complete.cases(dat),], size=1)
 dev.off()
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
