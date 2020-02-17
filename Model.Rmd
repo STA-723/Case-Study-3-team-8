@@ -16,9 +16,9 @@ data = d
 
 my_ggsave <- partial(ggsave, path = "Deliverables/Figures", width = 5, height = 3.5)
 
-generate_table <- function(d, name = "test.tex", cap = "") {
+generate_table <- function(d, name = "test.tex", cap = "", digits = 3) {
   d %>%
-    xtable(caption = cap, digits = 3) %>%
+    xtable(caption = cap, digits = digits) %>%
     print(file= str_c("Deliverables/Figures/", name), type = "latex", booktab = TRUE)
 }
 ```
@@ -137,11 +137,11 @@ m0 <- randomForest(Y ~ .,
                   do.trace = 10,
                   
                   # Computational costs
-                  ntree = 40,
+                  ntree = 1500,
                   
                   # Sensitivity analysis
-                  mtry = 5, # floor(ncol(d)/3),
-                  nodesize = 20, # pruning
+                  #mtry = 5, # floor(ncol(d)/3),
+                  #nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
 
 m0 %>%
@@ -151,22 +151,23 @@ m0 %>%
   rename(Importance = `%IncMSE`) %>%
   select(Variables, Importance) %>%
   arrange(-Importance) %>%
+  top_n(10, Importance) %>%
   
-  generate_table(name = "m0.tex", cap = "Variable importance for predictive model with restricted set of predictors")
+  generate_table(name = "m0.tex", cap = "Variable importance for predictive model with restricted set of predictors", digits = 1)
 ```
 
 ```{r}
 m1 <- randomForest(Y ~ ., 
                   data = d1, 
                   importance = TRUE,
-                  do.trace = 10,
+                  do.trace = 1,
                   
                   # Computational costs
-                  ntree = 100,
+                  ntree = 1500,
                   
                   # Sensitivity analysis
-                  mtry = 5, # floor(ncol(d)/3),
-                  nodesize = 20, # pruning
+                  #mtry = 5, # floor(ncol(d)/3),
+                  #nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
 
 
@@ -177,8 +178,13 @@ m1 %>%
   rename(Importance = `%IncMSE`) %>%
   select(Variables, Importance) %>%
   arrange(-Importance) %>%
+  top_n(10, Importance) %>%
   
-  generate_table(name = "m1.tex", cap = "Variable importance for predictive model with extensive set of predictors")
+  generate_table(name = "m1.tex", cap = "Variable importance for predictive model with extensive set of predictors", digits = 1)
+```
+
+```{r}
+save(m0, m1, file = "Data/RF.RDATA")
 ```
 
 
