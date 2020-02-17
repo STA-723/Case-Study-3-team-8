@@ -24,8 +24,14 @@ d <- d_cheap
 
 
 ```{r}
-ggplot(d, aes(x = ressource_need, color=factor(A7B))) +
-  geom_density() +
-  theme_minimal()
+pdf("Deliverables/Figures/response.pdf", width = 10, height = 5.2)
+
+par(mfrow=c(1,2), mar=c(3,2,1,1))
+hist(d$ressource_need, xlab="Ressource need score", line=1.1)
+
+dat = d[,c("consumption_risk", "behavioural_risk", "situational_risk", "awareness")]
+cor.im(dat[complete.cases(dat),], size=1)
+
+dev.off()
 ```
 
