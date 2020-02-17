@@ -152,7 +152,7 @@ m0 %>%
   select(Variables, Importance) %>%
   arrange(-Importance) %>%
   
-  generate_table(name = "example.tex", cap = "Example")
+  generate_table(name = "m0.tex", cap = "Variable importance for predictive model with restricted set of predictors")
 ```
 
 ```{r}
@@ -168,36 +168,38 @@ m1 <- randomForest(Y ~ .,
                   mtry = 5, # floor(ncol(d)/3),
                   nodesize = 20, # pruning
                   maxnodes = NULL) # pruning
-```
 
 
-```{r}
 m1 %>%
   importance() %>%
   
   as_tibble(rownames = "Variables") %>%
   rename(Importance = `%IncMSE`) %>%
   select(Variables, Importance) %>%
-  arrange(-Importance)
+  arrange(-Importance) %>%
+  
+  generate_table(name = "m1.tex", cap = "Variable importance for predictive model with extensive set of predictors")
 ```
+
+
 
 ## Conformal Prediction
 
 Change `n_tree` and `n_repeat` to larger values before the presentation. Use 1000 and 25 if time permits. More would be better (1500 and 100).
 
 ```{r computational costs}
-n_tree <- 50 # ideally: 1500
-n_repeat <- 3 # ideally 100
+n_tree <- 1500 # ideally: 1500
+n_repeat <- 2 # ideally 100
 ```
 
 
 ```{r conformal}
 # Setup
-output <- tibble(Width = numeric(0),
-                 Coverage   = numeric(0),
-                 Significance = numeric(0),
-                 `Set of Predictors` = character(0))
-
+# output <- tibble(Width = numeric(0),
+#                  Coverage   = numeric(0),
+#                  Significance = numeric(0),
+#                  `Set of Predictors` = character(0))
+# 
 signifs <- c(0.95, 0.9, 0.75, 0.5)
 prop_test <- 1/10
 prop_callibration <- 1/3
@@ -220,7 +222,7 @@ for(data in 1:2){
   
   for(i in 1 : n_repeat){ # repeat experiment N times
     
-    print(i)
+    print(paste(data,i))
     
     d_random <- d %>% sample_frac() # shuffle data
     d_train_proper <- d_random %>% slice(1:n_train_proper)
