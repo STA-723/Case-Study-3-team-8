@@ -45,7 +45,7 @@ Things we don't deal with (but that we should):
 \begin{enumerate}
   \item \textbf{Interpretability.} It is difficult to summarize the model and explain the predictions.
   \item \textbf{Fairness.} Non-discrimination (title IX). Issues using race, gender, age as predictors. Suitability of the ``student need'' response across these groups and quality of the data among them.
-  \item \textbf{Side effects.} We globally care about student well-being and success, not just about alcohol-related risks. Depending on how the model is used, only focusing on alcohol could have adverse effects on other issues.
+  %\item \textbf{Side effects.} We globally care about student well-being and success, not just about alcohol-related risks. Depending on how the model is used, only focusing on alcohol could have adverse effects on other issues.
   \item \textbf{Data representativeness.} The data may not represent a given school's student population and post-stratification would be necessary.
 \end{enumerate}
 
@@ -54,8 +54,34 @@ Things we don't deal with (but that we should):
 
 \begin{frame} \frametitle{Response variable}
 
+\begin{itemize}
+  \item Student awareness score in $[0,1]$: school policy awareness and information received at school.
+  \item Risk scores in $[0,1]$:
+    \begin{itemize}
+       \item \textbf{Consumption risk}: ``binge'' drinking and self description.
+       \item \textbf{Behavioural risk}: drunk driving, missing classes, hangover, regret, medical issues, trouble with police, etc.
+       \item \textbf{Situational risk}: insulted, assaulted, damaged property, etc.
+    \end{itemize}
+\end{itemize}
 
+$$
+  \text{need score} = (\text{2-awareness}) (\text{consumption} + \text{behaviour} + \text{situational})
+$$
 
+%The best would be to develop risk models with expert advice.
+
+%Here, for each risk category, we score answers to individual questions and aggregate the results for each individual.
+
+\end{frame}
+
+\begin{frame} \frametitle{Response variable}
+
+  % EDA 
+
+\end{frame}
+
+\begin{frame}
+  
 \end{frame}
 
 
@@ -69,7 +95,7 @@ Things we don't deal with (but that we should):
 		\item variables that the school already has e.g. age and sex
 		\item variables that the school could easily collect e.g. religion and marital status of parents additional predictors
 	\end{itemize}
-	\item Compare the predictive power of the two models using the \textit{conformal prediction} framework.
+	  \item Compare the predictive power of the two models using the \textit{conformal prediction} framework.
 \end{itemize}
 \end{frame}
 

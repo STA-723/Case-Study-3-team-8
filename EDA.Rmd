@@ -24,7 +24,8 @@ d <- d_cheap
 
 
 ```{r}
-ggplot(d, aes(x = Y, color=factor(d$A6))) +
-  geom_density()
+ggplot(d, aes(x = ressource_need, color=factor(A7B))) +
+  geom_density() +
+  theme_minimal()
 ```
 
