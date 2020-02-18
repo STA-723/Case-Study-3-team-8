@@ -191,10 +191,11 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \begin{frame} \frametitle{Conclusions}
 
 \begin{itemize}
-	\item Baseline student information provides some but limited information about the student ``ressource need'' variable.
-	\item The random forest model does not perform much better than a linear regression in terms of $R^2$ value ($16\%$ in this case; $39\%$ for the augmented model). Interpretable models would be more appropriate.
-	\item Asking students how they spend their time, what they value the most at college, and how satisfied they are with their education considerably improves predictive accuracy.
+	\item Student demographics, living accommodation and GPA provides are associated with the ``ressource need'' variable.
+	\item The random forest model does not perform much better than a linear regression in terms of $R^2$ value ($16\%$ in this case; $39\%$ for the augmented model). Such an interpretable model might be more appropriate.
+	\item Asking students about how they spend their time, what they value the most at college, and how satisfied they are with their education improves accuracy of ``ressource need'' predictions.
 	\item Can use mondrian conformal prediction to make the model fair (valid intervals \textit{conditioned} on, say, gender)
+	
 \end{itemize}
 
 
