@@ -5,9 +5,9 @@
 \usepackage{booktabs}
 \graphicspath{ {./Figures/} }
 
-\title{Predictive modelling of alcohol-associated risks in College students}
+\title{Predictive modelling of alcohol-associated risks in college students}
 \author{Olivier Binette and Raphael Morsomme}
-\date{February 18, 2020}
+\date{\today}
 
 \begin{document}
 
@@ -15,14 +15,14 @@
 
 \begin{frame} \frametitle{Goals}
 
-\textbf{Develop a predictive model of alcohol related risks} in college students using information readily available to schools, in order to help:
+\textbf{Develop a predictive model of alcohol-related risks} in college students using information readily available to schools, in order to help:
 
 \begin{enumerate}
   \item identify students at risk and allocate support ressources as effectively as possible;
-  \item determine if additional information could help identify students at risk.
+  \item determine if additional information could help better identify students at risk.
 \end{enumerate}
 
-\textbf{Assumption:} alcohol-related risks are an important issue that a school wants to address on its own through supporting students in need.
+\textbf{Assumption:} alcohol-related risks are an important issue that schools want to address by offering support to students in need.
   
 \end{frame}
 
@@ -40,7 +40,7 @@ What we deal with:
 
 \begin{frame} \frametitle{Challenges}
 
-Things we don't deal with (but that we should):
+Things we don't deal with (but we should):
 
 \begin{enumerate}
   \item \textbf{Interpretability.} It is difficult to summarize the model and explain the predictions.
@@ -68,7 +68,7 @@ $$
   \text{need score} = (\text{2-awareness}) (\text{consumption} + \text{behaviour} + \text{situational})
 $$
 
-Better approach would use expert advice... this is a coarse approximation to it.
+Ideally, use expert advice... this is only a coarse approximation.
 
 %The best would be to develop risk models with expert advice.
 
@@ -84,37 +84,23 @@ Better approach would use expert advice... this is a coarse approximation to it.
 
 \end{frame}
 
-\begin{frame} \frametitle{Random forest predictive models}
+\begin{frame} \frametitle{Predictors}
   
-  \textbf{Base model predictors:}
+  \textbf{Base model ($p=15$):}
   \begin{itemize}
-    \item Demographic information (age, gender, year in program, race, marital status, etc)
-    \item Living accomodation (living in dorm, alone, with roommates, spouse or parents; type of dorm, part of a fraternity or sorority).
+    \item Demographic information (age, gender, year in program, race)
+    \item Living accommodation (in dorm, alone, with roommates, spouse or parents; type of dorm, in a fraternity or sorority).
     \item GPA.
   \end{itemize}
   
-  \textbf{Augmented data model predictors:}
+  \textbf{Augmented data model ($p=39$):}
   \begin{itemize}
-    \item Same as above, plus:
+    \item Predictors of base model
     \item Ratings of importance of different aspects of student life (athletics, arts, partying, etc)
     \item Time doing various activities (tv, study, work etc)
     \item Satisfaction with education and life; friendships and mentorship.
   \end{itemize}
   
-\end{frame}
-
-\begin{frame} \frametitle{Predictive models fit}
-
-\textbf{Base model:} About $20\%$ ``variance explained''.
-\begin{itemize}
-  \item Most important predictors: race, part of fraternity or sorority, having roommates or not, etc.
-\end{itemize}
-
-\textbf{Augmented model:} About $40\%$ ``variance explained''.
-\begin{itemize}
-  \item Most important predictors: how much the student likes partying, and the above.
-\end{itemize}
-
 \end{frame}
 
 
@@ -123,22 +109,25 @@ Better approach would use expert advice... this is a coarse approximation to it.
   Conformal prediction (to be defined) allows us to:
   
   \begin{enumerate}
-    \item Quantify uncertainty associated with predicted values and limit issues associated with overconfidence.
-    \item Compare the fit of the two models from the point of view of the predictive error distribution.
+    \item Associate a measure of certainty to any prediction.
+    \begin{itemize}
+    	\item Regression setting: accompany a point prediction with a prediction interval
+    \end{itemize}
+    \item Compare the fit of the two models by looking at the tightness of the prediction intervals.
   \end{enumerate}
 
 \end{frame}
 
 \begin{frame} \frametitle{Conformal Prediction}
 
-Prediction intervals that are
+Conformal prediction generates prediction \textit{intervals} that are
 \begin{itemize}
 	\item valid at a given significance level for \textit{finite} sample (Vovk, 2005)
 	\item distribution-free
 	\item universal
 	\item individualized (Papadopoulos, 2009)
 	\item only assume exchangeability
-	\item cheap (Papadopoulos, 2002)
+	\item cheap (Papadopoulos, 2002), unlike bootstrap
 \end{itemize}
 \end{frame}
 
@@ -160,10 +149,10 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 
 \begin{frame} \frametitle{Set up}
 \begin{itemize}
-	\item Test set is $10\%$ of data set
+	\item Predictive model: random forest ($1,500$ trees, $m=p/3$, little pruning).
+	\item Test set is $10\%$ of data set.
 	\item Calibration set is $30\%$ of training set.
-	\item Repeat $100$ times to obtain the expected width of prediction intervals	
-	\item Predictive model: Random Forest with $1,500$ trees, $m = p/3$ and default pruning.
+	\item Repeat $10$ times to obtain the expected width of prediction intervals for each model at various significance levels.
 \end{itemize}
 \end{frame}
 
@@ -180,23 +169,44 @@ Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled tes
 \end{figure}
 \end{frame}
 
+
+\begin{frame} \frametitle{Results}
+
+\textbf{Base model:}
+\begin{itemize}
+	\item $16\%$ of variance explained
+	\item Most important predictors: race, part of fraternity or sorority, having roommates or not, etc.
+\end{itemize}
+
+\textbf{Augmented model:} 
+\begin{itemize}
+	\item $39\%$ of variance explained
+	\item Most important predictor: how much the student likes partying.
+	\item Tighter prediction intervals.
+\end{itemize}
+
+\end{frame}
+
+
 \begin{frame} \frametitle{Conclusions}
 
 \begin{itemize}
 	\item Baseline student information provides some but limited information about the student ``ressource need'' variable.
-	\item The random forest model does not perform much better than a linear regression in terms of $R^2$ value ($18\%$ in this case; $37\%$ for the augmented model). Interpretable models would be more appropriate.
-	\item Asking students about how they spend their time, what they value the most at college, and how satisfied they are with their education considerably improves predictive accuracy.
+	\item The random forest model does not perform much better than a linear regression in terms of $R^2$ value ($16\%$ in this case; $39\%$ for the augmented model). Interpretable models would be more appropriate.
+	\item Asking students how they spend their time, what they value the most at college, and how satisfied they are with their education considerably improves predictive accuracy.
+	\item Can use mondrian conformal prediction to make the model fair (valid intervals \textit{conditioned} on, say, gender)
 \end{itemize}
 
 
 \end{frame}
 
-\begin{frame} \frametitle{Appendix - Variable Importance}    
+
+\begin{frame} \frametitle{Results - Variable Importance (Base Model)}    
 \input{Figures/m0.tex}
 \end{frame}
 
 
-\begin{frame} \frametitle{Appendix - Variable Importance}    
+\begin{frame} \frametitle{Results - Variable Importance (Augmented Model)}    
 \input{Figures/m1.tex}
 \end{frame}
 
