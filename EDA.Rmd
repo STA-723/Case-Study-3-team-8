@@ -19,7 +19,7 @@ generate_table <- function(d, name = "test.tex", cap = ""){
 
 source("prettyplot.R")
 load("Data/data_model.RDATA")
-d <- d_cheap
+
 ```
 
 
@@ -37,7 +37,21 @@ dev.off()
 
 
 
+```{r}
 
+p0 = predict(m0)
+Y0 = d0$Y
+
+p1 = predict(m1)
+Y1 = d1$Y
+
+L = seq(min(Y0), max(Y0), length.out = 10)
+r = sapply(L, function(L) {
+  c(mean((p0 < L)[Y0 < L]), mean((p0 > L)[Y0 > L]))
+
+})
+plot(r[1,], r[2,])
+```
 
 
 
