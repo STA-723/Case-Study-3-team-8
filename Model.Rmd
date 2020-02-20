@@ -190,6 +190,11 @@ m1 %>%
 
 ```{r}
 save(m0, m1, file = "Data/RF.RDATA")
+load("Data/RF.RDATA")
+
+# variance explained
+m0
+m1
 ```
 
 
