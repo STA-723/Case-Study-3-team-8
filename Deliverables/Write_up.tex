@@ -7,7 +7,7 @@
  \usepackage{amsmath,amssymb,graphicx,url}
  \graphicspath{ {./Figures/} }
  
- \usepackage[margin=1in]{geometry}
+ \usepackage[margin=0.98in]{geometry}
 
  %\usepackage{rotating}% for sideways figures and tables
 \usepackage{longtable}% for long tables
@@ -15,7 +15,9 @@
  % The booktabs package is used by this sample document
  % (it provides \toprule, \midrule and \bottomrule).
  % Remove the next line if you don't require it.
-\usepackage{booktabs}
+%\usepackage{booktabs}
+\usepackage{natbib}
+%\usepackage{tabularx}
  % The siunitx package is used by this sample document
  % to align numbers in a column by their decimal point.
  % Remove the next line if you don't require it.
@@ -109,7 +111,7 @@ Additional issues are considered in Section \ref{sec:results}.
 
 \subsection{Outline}
 
-Our response variable is defined in Section \ref{sec:resp}, and our random forest predictive models are specified in Section \ref{sec:pred}. Section \ref{sec:conf} introduces the conformal prediction framework used to quantify prediction uncertainty and asssess out-of-sample predictive performance. The results of our analysis are presented in Section \ref{sec:results} and we discuss limitations and future directions in Section \ref{sec:disc}.
+Our response variable is defined in Section \ref{sec:resp}, and our random forest predictive models are specified in Section \ref{sec:pred}. Section \ref{sec:conf} introduces the conformal prediction framework used to quantify prediction uncertainty and asssess out-of-sample predictive performance. The results of our analysis are presented in Section \ref{sec:results} and we discuss limitations and other considerations in Section \ref{sec:disc}.
 
 
 
@@ -133,7 +135,7 @@ The consumption risk score involves the binge drinking indicator, the frequent b
 The measure was constructed for illustration purposes and should be refined using expert knowledge. Ideally, a model relating the different risks to the survey answers would be specified and trained using examples analyzed by experts.
 
 \subsection{Predictive models}
-\label{sec:mod}
+\label{sec:pred}
 
 Since we do not expect the relationship between the predictors and the response to be linear, we opt for a flexible predictive model. We choose the random forest algorithm because it offers good predictive power and requires little tuning . Due to the size of the data, a random forest takes $30$ minutes to fit, thereby limiting the possibility for tuning the parameter and conducting a sensitivity analysis. The parameters are $n=1,500$ trees, $m=p/3$ predictors considered at each split (where $p$ is the number of predictors, standard practice for regression) and the minimum number of observation per leaf is $5$.
 
@@ -176,8 +178,7 @@ It seems that only the student's attitude towards parties seems to be complement
 
 Future work should also consider the following issues relevant to the use of a predictive model. First, the use of age, race, gender, religion and other variables as predictors may be  problematic for schools. Evaluating the fairness of the model and avoiding systemic harms woulud be necessary before any potential use. Mondrian conformal prediction \cite{Vovk.2005} generates prediction intervals that are valid conditioned on the value of a given predictor (say, gender) and can therefore be used to make the model fairer. Second, we do not expect data from the 2001 College Alcohol survey to be representative of any given college in 2020. Even assuming that the alcohol risks and awareness landscape has not changed in 20 years, post-stratification or additional surveys would be necessary to properly characterize uncertainty at a given college.
 
-
-
+\bibliographystyle{chicago}
 \bibliography{bibliography}
 
 
