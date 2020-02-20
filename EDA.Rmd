@@ -27,7 +27,7 @@ load("Data/data_model.RDATA")
 pdf("Deliverables/Figures/response.pdf", width = 10, height = 5.2)
 
 par(mfrow=c(1,2), mar=c(3,2,1,1))
-hist(d$ressource_need, xlab="Ressource need score", line=1.1)
+hist(d$ressource_need, xlab="Ressource need score", line=1.1, breaks=50)
 
 dat = d[,c("consumption_risk", "behavioural_risk", "situational_risk", "awareness")]
 cor.im(dat[complete.cases(dat),], size=1)
@@ -54,7 +54,16 @@ plot(r[1,], r[2,])
 ```
 
 
+```{r}
+pdf("Deliverables/Figures/residuals.pdf", width=8, height=3)
 
+par(mfrow=c(1,2), mar=c(3,2,1,1))
+
+hist(Y0-p0, xlab="Base model residuals", line=1.2, xlim=c(-4,4), breaks=30)
+hist(Y1-p1, xlab="Augmented model residuals", line=1.2, xlim=c(-4,4), breaks=30)
+
+dev.off()
+```
 
 
 
