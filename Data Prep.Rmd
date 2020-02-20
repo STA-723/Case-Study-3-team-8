@@ -41,12 +41,12 @@ awareness = rowMeans(cbind(
            na.rm=T),
   
   # Provided information
-  rowMeans(cbind(d$B6A==0, 
-                 d$B6B==0, 
-                 d$B6C==0, 
-                 d$B6D==0, 
-                 d$B6E==0, 
-                 d$B6F==0, 
+  rowMeans(cbind(d$B6A==0,
+                 d$B6B==0,
+                 d$B6C==0,
+                 d$B6D==0,
+                 d$B6E==0,
+                 d$B6F==0,
                  d$B6G==0), 
            na.rm=T),
   
