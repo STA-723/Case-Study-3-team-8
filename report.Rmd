@@ -25,9 +25,9 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # 1. Introduction
 
-[TODO: Background info about the College alcohol study.]
+The 2001 College Alcohol Survey is the last element of a multi-round survey carried out at three previous occasions starting in 1993. It investigated multiple aspects of student life and background information as relevant to alcohol consumption and its consequences. 
 
-The goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help:
+Using this survey, the goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help:
 
   1. identify students at risk and allocate support ressources as effectively as possible; and
   2. determine other pieces of information that a school might additionally gather identify students at risk.
@@ -77,6 +77,8 @@ As described in the introduction, we build two predictive random forest models [
 The baseline model only takes for input demographic information about students (questions A1-A3, G1-G4), information about living accomodations (questions A6, A7, B9) and other information that is readily available to schools such as participation in greek life and student GPA (questions A4, A5, F5, B2, B9).
 
 The augmented data model also incorporates information about students preferences (question A8A-A8I), about student activities (question F6A-F6I) and about student satisfaction with life and education (questions F1-F4).
+
+Predictors with more than $25\%$ missing values were removed from the analysis and we then proceeded with a complete case analysis.
 
 The quality of the fit of the models is assessed over the training sample using the percentage of "variation explained". Furthermore, the generalization performance is assessed by looking at the predictive error distribution through the conformal prediction framework detailed in the next section.
 
