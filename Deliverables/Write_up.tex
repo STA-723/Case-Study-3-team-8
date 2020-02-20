@@ -1,11 +1,13 @@
 %\documentclass[wcp,gray]{jmlr} % test grayscale version
-\documentclass[10pt]{jmlr}% former name JMLR W\&CP
+\documentclass[10pt]{amsart}% former name JMLR W\&CP
 %\documentclass[pmlr]{jmlr}% new name PMLR (Proceedings of Machine Learning)
 
  % The following packages will be automatically loaded:
  % amsmath, amssymb, natbib, graphicx, url, algorithm2e
  \usepackage{amsmath,amssymb,graphicx,url}
  \graphicspath{ {./Figures/} }
+ 
+ \usepackage[margin=1in]{geometry}
 
  %\usepackage{rotating}% for sideways figures and tables
 \usepackage{longtable}% for long tables
@@ -17,7 +19,7 @@
  % The siunitx package is used by this sample document
  % to align numbers in a column by their decimal point.
  % Remove the next line if you don't require it.
-\usepackage[load-configurations=version-1]{siunitx} % newer version
+%\usepackage[load-configurations=version-1]{siunitx} % newer version
  %\usepackage{siunitx}
 
 % Package to make table with multi rows and columns
@@ -28,10 +30,10 @@
 \newcommand\todo[1]{\textcolor{red}{#1}}
 
  % change the arguments, as appropriate, in the following:
-\jmlrvolume{}
-\jmlryear{}
-\jmlrworkshop{STA723 -- Case Study 3}
-\jmlrproceedings{}{}
+%\jmlrvolume{}
+%\jmlryear{}
+%\jmlrworkshop{STA723 -- Case Study 3}
+%\jmlrproceedings{}{}
 
 
 \usepackage[toc,page]{appendix}
@@ -42,7 +44,7 @@
 % \footnote{}
 % \textsf
 
-\title[Predictive modelling of alcohol-associated risks in college students]{Predictive modelling of alcohol-associated risks in college students}
+\title{Predictive modelling of alcohol-associated risks in college students}
  % Use \Name{Author Name} to specify the name.
  % If the surname contains spaces, enclose the surname
  % in braces, e.g. \Name{John {Smith Jones}} similarly
@@ -52,7 +54,7 @@
 
  % Authors with different addresses:
  
- \author[Binette, Morsomme]{Olivier Binette \and Raphael Morsomme}
+ \author{Olivier Binette \and Raphael Morsomme}
  \date{\today} % Date, can be changed to a custom date
 
  % Three or more authors with the same address:
@@ -77,20 +79,19 @@
 
 \maketitle
 
-\begin{abstract}
-
-\end{abstract}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INTRODUCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 \label{sec:intro}
 
+The 2001 College Alcohol Survey is the last element of a multi-round survey carried out at three previous occasions starting in 1993. It investigated multiple aspects of student life and background information as relevant to alcohol consumption and its consequences. 
 
-
-The goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help (i) identify students at risk and allocate support ressources as effectively as possible; and (ii) determine other pieces of information that a school might additionally gather identify students at risk.
-
+Using this survey, the goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help:
+\begin{enumerate}
+  \item identify students at risk and allocate support ressources as effectively as possible; and
+  \item determine other pieces of information that a school might additionally gather identify students at risk.
+\end{enumerate}
 To address the first question, we develop a base predictive model which takes for input a student's demographic information, information about their living accomodation on or off campus, and their GPA, in order to predict a ``ressource need'' score variable. This score variable is composed of a student awareness score and three interpretable risk scores (for consumption risks, behavioural risks, and situational risks). Responses from the College Alcohol Survey were used to score individuals in these categories and train the predictive model, and the Conformal Prediction framework is used to provide prediction uncertainty quantification.
 
 For the second question, we studied the gain in predictive performance that can be obtained using additional predictors related to student well-being and interests. These predictors are not directly related to alcohol consumption (although one of they include a survey question about the importance of partying) and could reasonably be probed for in order to help determine a student's risk. 
@@ -104,25 +105,41 @@ Predictive modelling comes with particular challenges and considerations which s
 \item \textbf{Reliability and out of sample performance:} We provide uncertainty quantification for the predictions with exact frequentist coverage under a data representativeness assumption. In other words, we quantify the accuracy of our model through a quantity $\Delta$ such that, for any prediction $p$, $p \pm \Delta$ is a $95\%$ confidence interval for the predicted value. This $\Delta$ is obtained through the conformal prediction framework by computing the marginal distribution of the out of sample prediction error. 
 \end{itemize}
 
+Additional issues are considere in the Discussion.
 
-Additionally, the following should be considered if a predictive model like the one we proposed were to be used in practice. We do not address these in this case study.
+\subsection{Outline}
 
-\begin{itemize}
-\item \textbf{Fairness:} The use of age, race, gender, religion and other variables as predictors is problematic for schools under Title IX. Data quality and reliability among these groups, as well as the meaningfulness of the response variable we define for them and the practical implications of the use of such a predictive model should be carefully considered prior to any implementation.
-\item \textbf{Data representativeness:} We only used data from the 2001 College Alchol Survey. The information it contains may be outdated and is certainly unrepresentative of the student population at any given school. Post-stratification and other adjustments could be carried out in applications.
-\end{itemize}
+Our response variable is defined in Section 2.1, and our random forest predictive models are specified in Section 2.2. Section 2.3 introduces the conformal prediction framework used to quantify prediction uncertainty and asssess out-of-sample predictive performance. The results of our analysis are presented in Section 3 and we discuss limitations and future directions in Section 4.
 
 
 
+\section{Materials and methods}
 
+\subsection{Response variable}
 
+We define the student ``ressource need'' variable as
+$$
+  \text{ressource need} = (\text{2-awareness}) (\text{consumption risk} + \text{behavioural risk} + \text{situational risk})
+$$
+where student awareness of alcohol risks score and other risk scores are determined from answers on the College Alcohol Survey.
 
+To provide more details, the complement of the awareness score is the mean of a school policy knowledge score (proportion of "Don't know school policy" answers to questions B3 and B5), of a school provided information score (proportion of "no provided information" on questions B6A-B6G), and of an educational material score (proportion of "no educational material or programs" on questions B7A-B7E).
 
+For the alcohol-related risks, we looked at individual survey questions and associated to each possible answer a number between $0$ and $1$. Each of these numbers represents the marginal probability that a student providing this answer has alcohol-related issues. While it is not obvious how to aggregate these marginal probabilities without specifying a covariance structure between the questions, we opted for the complement of the geometric average of the complementary probabilities. That is, if the marginal probabilities are $p_1, \dots, p_k$, then the resulting score is $1-\prod_i (1-p_i)^{1/k}$. Missing values were omitted. In this way, having large marginal probabilities of alcohol issues on a few questions is given more weight than a low probability of alcohol issue on many questions. 
 
+The consumption risk score involves the binge drinking indicator, the frequent binge drinking indicator, as well as question C7 (self-description of alcohol consumption). The behavioural risk score involves the drunk driving indicator, the binge drunk driving indicator, as well as questions C17A-C17K and questions C18E, C18F (consequences of drinking). Finally, the situational risk involves questions D1A-D1C and D1H (consequences of drinking of other students).
 
-\section{Methodology}
+The measure was constructed for illustration purposes and should be refined using expert knowledge. Ideally, a model relating the different risks to the survey answers would be specified and trained using examples analyzed by experts. 
+
+\subsection{Predictive models}
 
 Since we do not expect the relationship between the predictors and the response to be linear, we opt for a flexible predictive model. We choose the random forest algorithm because it offers good predictive power and requires little tuning . Note that due to the size of the data set, a random forest takes 30 minutes to fit, thereby limiting the possibility of tuning the parameters and conducting a sensitivity analysis. The parameters are $n=1,500$ trees, $m=p/3$ predictors considered at each split (where $p$ is the number of predictor, standard practice for regression) and the minimum number of observation per leaf is $5$.
+
+The baseline model only takes for input demographic information about students (questions A1-A3, G1-G4), information about living accomodations (questions A6, A7, B9) and other information that is readily available to schools such as participation in greek life and student GPA (questions A4, A5, F5, B2, B9).
+
+The augmented data model also incorporates information about students preferences (question A8A-A8I), about student activities (question F6A-F6I) and about student satisfaction with life and education (questions F1-F4).
+
+Predictors with more than $25\%$ missing values were removed from the analysis and we then proceeded with a complete case analysis.
 
 To answer the main question of whether or not schools should collect more data about their student that what is already readily available to them in order to identify students at risk, we fit a random forest model to each set of predictors. We then construct prediction intervals using the conformal prediction framework and compare their average width across the two models at various significance level. If the additional set of predictors does help make more accurate predictions and are therefore \textit{useful}, then the prediction intervals of the model will be tighter, that is, more informative.
 
@@ -135,10 +152,10 @@ We use the \textit{inductuve conformal framework} to construct predictive interv
 	\item partition the training set into a \textit{proper training} set $\{z_j\}_{j=1}^l$ and a \textit{calibration} set $\{z_k \}_{k=l+1}^n$,
 	\item fit the predictive model $m$ on the proper training set,
 	\item compute the predictions $\hat{y}_k$ on the calibration set and the anomaly scores
-	$$a(z_k, m) = |\hat{y}_k - y_k|, \quad k = l+1, \dots, n$$,
+	$$a(z_k, m) = |\hat{y}_k - y_k|, \quad k = l+1, \dots, n,$$
 	\item identify $a_\epsilon$, the $\epsilon^{\text{th}}$ percentile of the $\{a\}_{k=l+1}^n$,
 	\item compute the prediction $\hat{y}_{n+1}$ on the test observation and set the prediction interval to be
-	$$\{y: |\hat{y}_{n+1} - y| < a_\epsilon\}$$.
+	$$\{y: |\hat{y}_{n+1} - y| < a_\epsilon\}.$$
 \end{enumerate}
 Note that these intervals will be the same of every observation. In order to make them individualized, one need to use a anomaly function function such that
 $$a(z_k, m_1, m_0) = \dfrac{|\hat{y}_k - y_k|}{exp(\sigma_k)}$$
@@ -152,19 +169,35 @@ intervals for each model at various significance levels.
 \section{Results}
 \label{sec:results}
 
-Table 1 indicates that, given a significance level, the conformal prediction intervals are valid in the frequentist sense up to statistical fluctuations. \figureref{fig:conformal} shows the distribution of the prediction intervals. We observe that the model with the larger set of predictors produces intervals that are tighter than those of the base model. Tables 2 and 3 indicate the $10$ variables with the highest contribution to each model. Race appears to be an important predictor in both models. 
+Table 1 indicates that, given a significance level, the conformal prediction intervals are valid in the frequentist sense up to statistical fluctuations. Figure \ref{fig:conformal} shows the distribution of the prediction intervals. We observe that the model with the larger set of predictors produces intervals that are tighter than those of the base model. Tables 2 and 3 indicate the $10$ variables with the highest contribution to each model. Race appears to be an important predictor in both models. 
 
 \section{Discussion}
 \label{sec:conclusion}
 
 It seems that only the student's attitude towards parties seems to be complementing the variables of the base model. In fact, among the $5$ most important variables of the augmented model, it is the only one that is not present in the base model. Interestingly, it is also the most important variable of the augmented model by a large margin, indicating that collecting this variable will help schools identify more efficiently students at risk.
 
+Future work should also consider the following issues relevant to the use of a predictive model. First, the use of age, race, gender, religion and other variables as predictors may be  problematic for schools. Evaluating the fairness of the model and avoiding systemic harms woulud be necessary before any potential use. Second, we do not expect data from the 2001 College Alcohol survey to be representative of any given college in 2020. Even assuming that the alcohol risks and awareness landscape has not changed in 20 years, post-stratification or additional surveys would be necessary to properly characterize uncertainty at a given college.
 
 
 \newpage
 \appendix
 
 \section{Figures}
+
+\begin{center}
+\begin{figure}[h]
+  \includegraphics[width=\linewidth]{Figures/response.pdf}
+  \caption{Histogram of the ``ressource need'' response variable (left) and representation of the correlation between the different components of this variable (right).}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[h]
+  \includegraphics[width=\linewidth]{Figures/residuals}
+  \caption{Histograms of predictive models residual distributions.}
+\end{figure}
+\end{center}
+
 
 \input{Figures/conformal.tex}
 
