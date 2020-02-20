@@ -30,15 +30,11 @@
  % change the arguments, as appropriate, in the following:
 \jmlrvolume{}
 \jmlryear{}
-\jmlrworkshop{STA723 -- Case Study 1}
+\jmlrworkshop{STA723 -- Case Study 3}
 \jmlrproceedings{}{}
 
 
 \usepackage[toc,page]{appendix}
-
-\usepackage{geometry}
-\geometry{letterpaper, margin=0.9in}
-
 
 
 % start article
@@ -46,8 +42,7 @@
 % \footnote{}
 % \textsf
 
-\title[Modeling Price and Popularity of AirBnB listings in New-York]{Modeling Price and Popularity of AirBnB listings in New-York}	%\titletag{\thanks{XXX}} % leave empty?
-
+\title[Predictive modelling of alcohol-associated risks in college students]{Predictive modelling of alcohol-associated risks in college students}
  % Use \Name{Author Name} to specify the name.
  % If the surname contains spaces, enclose the surname
  % in braces, e.g. \Name{John {Smith Jones}} similarly
@@ -57,7 +52,7 @@
 
  % Authors with different addresses:
  
- \author[Jiang, Morsomme, Nwankwo]{Melody Jiang \and Raphael Morsomme \and Ezinne Nwankwo}
+ \author[Binette, Morsomme]{Olivier Binette \and Raphael Morsomme}
  \date{\today} % Date, can be changed to a custom date
 
  % Three or more authors with the same address:
@@ -94,10 +89,7 @@
 
 
 
-The goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help:
-
-  1. identify students at risk and allocate support ressources as effectively as possible; and
-  2. determine other pieces of information that a school might additionally gather identify students at risk.
+The goal of our case study was to develop a predictive model of alcohol related risks in college students using information readily available to schools, in order to help (i) identify students at risk and allocate support ressources as effectively as possible; and (ii) determine other pieces of information that a school might additionally gather identify students at risk.
 
 To address the first question, we develop a base predictive model which takes for input a student's demographic information, information about their living accomodation on or off campus, and their GPA, in order to predict a ``ressource need'' score variable. This score variable is composed of a student awareness score and three interpretable risk scores (for consumption risks, behavioural risks, and situational risks). Responses from the College Alcohol Survey were used to score individuals in these categories and train the predictive model, and the Conformal Prediction framework is used to provide prediction uncertainty quantification.
 
@@ -122,90 +114,70 @@ Additionally, the following should be considered if a predictive model like the 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% METHODS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Methods}
-\label{sec:method}
-
-\subsection{Data Preparation}
-\label{sec:data}
 
 
 
 
-\subsection{Feature Engineering}
-\label{sec:feature}
-\subsubsection{Spatial Variables}
-\figureref{fig:map_eda} 
-
-\subsubsection{Textual Variables}
 
 
+\section{Methodology}
 
-\subsection{Model}
+Since we do not expect the relationship between the predictors and the response to be linear, we opt for a flexible predictive model. We choose the random forest algorithm because it offers good predictive power and requires little tuning . Note that due to the size of the data set, a random forest takes 30 minutes to fit, thereby limiting the possibility of tuning the parameters and conducting a sensitivity analysis. The parameters are $n=1,500$ trees, $m=p/3$ predictors considered at each split (where $p$ is the number of predictor, standard practice for regression) and the minimum number of observation per leaf is $5$.
+
+To answer the main question of whether or not schools should collect more data about their student that what is already readily available to them in order to identify students at risk, we fit a random forest model to each set of predictors. We then construct prediction intervals using the conformal prediction framework and compare their average width across the two models at various significance level. If the additional set of predictors does help make more accurate predictions and are therefore \textit{useful}, then the prediction intervals of the model will be tighter, that is, more informative.
+
+\subsection{Conformal Prediction}
+
+Conformal prediction is a framework conceptualized by Vapnik, Gammermand an Vovk in the late 90's to complement point predictions with a measure of certainty that enjoys certain properties. In the regression settings, this takes the form of prediction intervals. These prediction intervals enjoy the following properties. First, they are valid in the frequentist sense for a finite sample size, meaning that they cover the true response of the observation $\epsilon \%$, where $\epsilon$ is a set significance level, and that this property is not asymptotic. Second, the framework is distribution-free and universal. The latter qualification means that the framework can be applied to any prediction algorithm that outputs a point estimate (e.g. ridge regression, neural network, $k$-nearest neighbor algorithm, random forest, to name a few). Third, these intervals can also be individualized to each observation, that is, an observation that is easy to predict will have a tight interval while an observation that is difficult to predict will have a wider interval. Finally, using \textit{inductive} conformal prediction, the construction of the intervals is computationally cheap, only requiring fitting the predictive model once. This can be compared to the bootstrap approach to the construction of prediction intervals which requires numerous fittings of the predictive models. In our case, since the random forest takes $30$ minutes to fit, bootstrap would not have been an option. It is worth noting that the only assumption made o construct conformal prediction prediction intervals is the exchangeability of the observations.
+
+We use the \textit{inductuve conformal framework} to construct predictive interval. The methods proceeds as follows. Given a labeled training set $\{z_i = (x_i, y_i)\}_{i=1}^n$ and an unlabeled test observation $x_{n+1}$,
+\begin{enumerate}
+	\item partition the training set into a \textit{proper training} set $\{z_j\}_{j=1}^l$ and a \textit{calibration} set $\{z_k \}_{k=l+1}^n$,
+	\item fit the predictive model $m$ on the proper training set,
+	\item compute the predictions $\hat{y}_k$ on the calibration set and the anomaly scores
+	$$a(z_k, m) = |\hat{y}_k - y_k|, \quad k = l+1, \dots, n$$,
+	\item identify $a_\epsilon$, the $\epsilon^{\text{th}}$ percentile of the $\{a\}_{k=l+1}^n$,
+	\item compute the prediction $\hat{y}_{n+1}$ on the test observation and set the prediction interval to be
+	$$\{y: |\hat{y}_{n+1} - y| < a_\epsilon\}$$.
+\end{enumerate}
+Note that these intervals will be the same of every observation. In order to make them individualized, one need to use a anomaly function function such that
+$$a(z_k, m_1, m_0) = \dfrac{|\hat{y}_k - y_k|}{exp(\sigma_k)}$$
+where $\hat{y}_k$ is the prediction of the response variable made model $m0$ and $\sigma_k$ is the prediction of the log absolute error $log(|\hat{y}_k - y_k|)$ made by a second model $m1$ trained on the calibration set. The log-exponentiation trick is used to ensure that the anomaly values $a(z_k, m_1, m_0)$ are positive.
+
+We use the following set-up: the test set consists of $10\%$ of the data set, the calibration set consists of $30\%$ of the training set and we repeat the procedure $10$ times to obtain the expected width of prediction
+intervals for each model at various significance levels.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% RESULTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Results}
 \label{sec:results}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EDA
-\subsection{EDA}
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN FINDINGS
-\subsection{Main Findings}
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SENSITIVITY ANALYSIS
-\subsection{Model Checking and Sensitivity Analysis}
-
-
+Table 1 indicates that, given a significance level, the conformal prediction intervals are valid in the frequentist sense up to statistical fluctuations. \figureref{fig:conformal} shows the distribution of the prediction intervals. We observe that the model with the larger set of predictors produces intervals that are tighter than those of the base model. Tables 2 and 3 indicate the $10$ variables with the highest contribution to each model. Race appears to be an important predictor in both models. 
 
 \section{Discussion}
 \label{sec:conclusion}
 
-Limits of (long) survey.
-
-Absence of non-response rate.
+It seems that only the student's attitude towards parties seems to be complementing the variables of the base model. In fact, among the $5$ most important variables of the augmented model, it is the only one that is not present in the base model. Interestingly, it is also the most important variable of the augmented model by a large margin, indicating that collecting this variable will help schools identify more efficiently students at risk.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% APPENDIX
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 \appendix
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BOX COX
 \section{Figures}
-\label{appendix:fig}
+
+\input{Figures/conformal.tex}
 
 \begin{figure}[htbp]
 	\centering
-	\caption{Distribution of minimum number of nights.}
-	%\includegraphics[width=0.5\linewidth]{length_stay_density.jpeg}
-	\label{fig:length_stay_density}
+	\caption{Median and inter-decile of the width distribution of the prediction intervals across different significance levels for the two models.}
+	\includegraphics[width=0.9\linewidth]{conformal.jpeg}
+	\label{fig:conformal}
 \end{figure}
 
+\input{Figures/m0.tex}
 
-\newpage  % ensures that all figures remain together in appendix B
+\input{Figures/m1.tex}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODEL CHECKING
-
-\section{Full Model Output}
-
-%\input{Figures/price_rf_importance.tex} % import table
-	test
-
-\newpage
-
-\bibliography{bibliography}
 
 \end{document}
